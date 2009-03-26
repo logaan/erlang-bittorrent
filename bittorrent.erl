@@ -3,16 +3,18 @@
 -compile(export_all).
 
 start_peer(Host, Port) ->
-  {ok, Socket} = gen_tcp:connect(Host, Port, [binary, {packet, 0}]),
+  {ok, Socket} = gen_tcp:connect(Host, Port, [binary, {active, false}]),
   ok = gen_tcp:send(Socket, list_to_binary([
     19, % Protocol string length
     "BitTorrent protocol", % Protocol string
     <<0,0,0,0,0,0,0,0>>, % Reseved space
-    <<60, 12, 28, 181, 105, 136, 94, 238, 188, 226, 221, 253, 177, 52, 40, 78, 111, 80, 4, 172>>, % Info Hash
+    % Manhattan Murder Mystery (Woody Allen)
+    <<200, 23, 161, 167, 183, 43, 142, 38, 51, 130, 26, 222, 105, 118, 208, 38,
+      170, 97, 237, 59>>, % Info Hash
     "-AZ4004-znmphhbrij37" % Peer ID
   ])),
-  receive
-    {tcp,Socket,Bin} ->
+  case gen_tcp:recv(Socket, 68) of
+    {ok,Bin} ->
       <<
         19,
         "BitTorrent protocol",
@@ -20,15 +22,26 @@ start_peer(Host, Port) ->
         InfoHash:20/binary,
         _PeerID:20/binary
       >> = Bin,
-      spawn(bittorrent, peer_loop, [Socket, InfoHash])
+      spawn(?MODULE, peer_loop, [Socket, InfoHash]);
+    {error,closed} ->
+      io:format("The connection has been closed. Perhaps you already have a connection open.~n");
+    Other ->
+      io:format("Weird Match: ~p~n", [Other])
   end.
 
 peer_loop(Socket, InfoHash) ->
+  {ok,Bin} = gen_tcp:recv(Socket, 0),
+  io:format("Tail?: ~p~n", [Bin]),
+  inet:setopts(Socket,[{active,true}]),
   receive
-    i_love_you ->
-      io:format("keep it coming baby\n"),
+    ping ->
+      io:format("pong\n"),
       peer_loop(Socket, InfoHash);
-    kill_yourself ->
-      io:format("i hate you so much\n")
+    destroy ->
+      gen_tcp:close(Socket),
+      io:format(":(\n");
+    Other ->
+      io:format("Other: ~p~n", [Other]),
+      peer_loop(Socket, InfoHash)
   end.
 
