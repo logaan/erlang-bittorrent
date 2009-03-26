@@ -14,8 +14,8 @@ start_peer(Host, Port) ->
   receive
     {tcp,Socket,Bin} ->
       <<
-        _PstrLen:1/binary,
-        _Pstr:19/binary,
+        19,
+        "BitTorrent protocol",
         _Reserved:8/binary,
         InfoHash:20/binary,
         _PeerID:20/binary
