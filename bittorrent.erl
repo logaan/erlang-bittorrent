@@ -20,7 +20,7 @@ start_peer(Host, Port) ->
         InfoHash:20/binary,
         _PeerID:20/binary
       >> = Bin,
-      spawn(fun() -> peer_loop(Socket, InfoHash) end)
+      spawn(bittorrent, peer_loop, [Socket, InfoHash])
   end.
 
 peer_loop(Socket, InfoHash) ->
