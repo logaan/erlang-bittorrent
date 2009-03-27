@@ -43,11 +43,15 @@ peer_loop(Socket, InfoHash) ->
 
 read_bitfield(Socket, _InfoHash) ->
   {ok,<<BinaryLength:4/binary, 5>>} = gen_tcp:recv(Socket, 5),
-  Length = four_byte_integer_from_binary(BinaryLength) - 1,
+  Length = list_to_multibyte_integer(BinaryLength) - 1,
   {ok,Bin} = gen_tcp:recv(Socket, Length),
   io:format("Payload: ~p~n", [Bin]).
 
+list_to_multibyte_integer(List) ->
+  list_to_multibyte_integer(List, 0).
+list_to_multibyte_integer([], Result) ->
+  Result;
+list_to_multibyte_integer([H|T], Result) ->
+  NewResult = (Result bsl 8) + H,
+  list_to_multibyte_integer(T, NewResult).
 
-four_byte_integer_from_binary(Binary) ->
-  <<B0, B1, B2, B3>> = Binary,
-  (B0 bsl 24) + (B1 bsl 16) + (B2 bsl 8) + B3.
