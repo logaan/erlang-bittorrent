@@ -5,21 +5,19 @@
 start_peer(Host, Port, InfoHash) ->
   spawn(?MODULE, start_loop, [Host, Port, InfoHash]).
 
+
 start_loop(Host, Port, InfoHash) ->
   io:format("Starting loop for ~p~n", [InfoHash]),
   {ok, Socket} = gen_tcp:connect(Host, Port, [binary, {active, true}]),
   {ok, _PeerID} = handshake(Socket, InfoHash),
   loop(Socket).
 
+
 loop(Socket) ->
   receive
     {tcp,Socket,<<0,0,0,0,0,0,0,0>>} ->
       io:format("Got a keepalive~n"),
       send_keepalive(Socket),
-      bittorrent:loop(Socket);
-
-    {tcp,Socket,<<0,0,0,1,1>>} ->
-      io:format("You are unchoked~n"),
       bittorrent:loop(Socket);
 
     {tcp,Socket,<<MessageLength:4/binary, MessageID/integer, Tail/binary>>} ->
@@ -35,12 +33,23 @@ loop(Socket) ->
 
   end.
 
-handle_message(Message) ->
-  case Message of
-    <<MessageLength:4/binary, 5, Tail/binary>> ->
-      Length = binary_to_multibyte_integer(MessageLength),
-      io:format("Received bitfield of length ~p~n", [Length])
-  end.
+
+handle_message(<<>>) ->
+  ok;
+
+handle_message(<<0,0,0,1,1, Tail/binary>>) ->
+  io:format("You are unchoked~n"),
+  handle_message(Tail);
+
+handle_message(<<MessageLength:4/binary, 5, Tail/binary>>) ->
+  Length  = binary_to_multibyte_integer(MessageLength) - 1,
+  <<Payload:Length/binary, UnusedTail/binary>> = Tail,
+  io:format("Received bitfield of length ~p with payload ~n~p~n", [Length, Payload]),
+  handle_message(UnusedTail);
+
+handle_message(Other) ->
+  io:format("Got a weird message: ~p~n", [Other]).
+
 
 handshake(Socket, InfoHash) ->
   gen_tcp:send(Socket, list_to_binary([
@@ -62,14 +71,18 @@ handshake(Socket, InfoHash) ->
       {ok, PeerID}
   end.
 
+
 send_keepalive(Socket) ->
   gen_tcp:send(Socket, <<0,0,0,0,0,0,0,0>>).
+
 
 binary_to_multibyte_integer(Binary) ->
   List = binary_to_list(Binary),
   list_to_multibyte_integer(List, 0).
+
 list_to_multibyte_integer([], Result) ->
   Result;
+
 list_to_multibyte_integer([H|T], Result) ->
   NewResult = (Result bsl 8) + H,
   list_to_multibyte_integer(T, NewResult).
