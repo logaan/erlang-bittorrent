@@ -8,26 +8,11 @@ start_peer(Host, Port, InfoHash) ->
 start_loop(Host, Port, InfoHash) ->
   io:format("Starting loop for ~p~n", [InfoHash]),
   {ok, Socket} = gen_tcp:connect(Host, Port, [binary, {active, true}]),
-  ok = send_handshake(Socket, InfoHash),
+  {ok, _PeerID} = handshake(Socket, InfoHash),
   loop(Socket).
 
 loop(Socket) ->
   receive
-    {tcp,Socket,<<
-        19,
-        "BitTorrent protocol",
-        _Reserved:8/binary,
-        _InfoHash:20/binary,
-        PeerID:20/binary
-      >>} ->
-      io:format("Received handshake from ~p~n", [PeerID]),
-      bittorrent:loop(Socket);
-
-    {tcp,Socket,<<MessageLength:4/binary, 5, _Tail/binary>>} ->
-      Length = binary_to_multibyte_integer(MessageLength),
-      io:format("Received bitfield of length ~p~n", [Length]),
-      bittorrent:loop(Socket);
-
     {tcp,Socket,<<0,0,0,0,0,0,0,0>>} ->
       io:format("Got a keepalive~n"),
       send_keepalive(Socket),
@@ -35,6 +20,10 @@ loop(Socket) ->
 
     {tcp,Socket,<<0,0,0,1,1>>} ->
       io:format("You are unchoked~n"),
+      bittorrent:loop(Socket);
+
+    {tcp,Socket,<<MessageLength:4/binary, MessageID/integer, Tail/binary>>} ->
+      handle_message(list_to_binary([MessageLength, MessageID, Tail])),
       bittorrent:loop(Socket);
 
     {tcp_closed,Socket} ->
@@ -46,14 +35,32 @@ loop(Socket) ->
 
   end.
 
-send_handshake(Socket, InfoHash) ->
+handle_message(Message) ->
+  case Message of
+    <<MessageLength:4/binary, 5, Tail/binary>> ->
+      Length = binary_to_multibyte_integer(MessageLength),
+      io:format("Received bitfield of length ~p~n", [Length])
+  end.
+
+handshake(Socket, InfoHash) ->
   gen_tcp:send(Socket, list_to_binary([
-      19,                    % Protocol string length
-      "BitTorrent protocol", % Protocol string
-      <<0,0,0,0,0,0,0,0>>,   % Reseved space
-      InfoHash,              % Info Hash
-      "-AZ4004-znmphhbrij37" % Peer ID
-    ])).
+    19,                    % Protocol string length
+    "BitTorrent protocol", % Protocol string
+    <<0,0,0,0,0,0,0,0>>,   % Reseved space
+    InfoHash,              % Info Hash
+    "-AZ4004-znmphhbrij37" % Peer ID
+  ])),
+  receive
+    {tcp,Socket,<<
+        19,
+        "BitTorrent protocol",
+        _Reserved:8/binary,
+        _InfoHash:20/binary,
+        PeerID:20/binary
+      >>} ->
+      io:format("Received handshake from ~p~n", [PeerID]),
+      {ok, PeerID}
+  end.
 
 send_keepalive(Socket) ->
   gen_tcp:send(Socket, <<0,0,0,0,0,0,0,0>>).
