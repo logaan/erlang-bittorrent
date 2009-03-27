@@ -23,8 +23,9 @@ loop(Socket) ->
       io:format("Received handshake from ~p~n", [PeerID]),
       bittorrent:loop(Socket);
 
-    {tcp,Socket,<<_MessageLength:4/binary, 5, _Tail/binary>>} ->
-      io:format("Received bitfield~n"),
+    {tcp,Socket,<<MessageLength:4/binary, 5, _Tail/binary>>} ->
+      Length = binary_to_multibyte_integer(MessageLength),
+      io:format("Received bitfield of length ~p~n", [Length]),
       bittorrent:loop(Socket);
 
     {tcp,Socket,<<0,0,0,0,0,0,0,0>>} ->
@@ -60,4 +61,13 @@ send_handshake(Socket, InfoHash) ->
 
 send_keepalive(Socket) ->
   gen_tcp:send(Socket, <<0,0,0,0,0,0,0,0>>).
+
+binary_to_multibyte_integer(Binary) ->
+  List = binary_to_list(Binary),
+  list_to_multibyte_integer(List, 0).
+list_to_multibyte_integer([], Result) ->
+  Result;
+list_to_multibyte_integer([H|T], Result) ->
+  NewResult = (Result bsl 8) + H,
+  list_to_multibyte_integer(T, NewResult).
 
