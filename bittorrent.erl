@@ -9,8 +9,7 @@ start_peer(Host, Port) ->
     "BitTorrent protocol", % Protocol string
     <<0,0,0,0,0,0,0,0>>, % Reseved space
     % Manhattan Murder Mystery (Woody Allen)
-    <<200, 23, 161, 167, 183, 43, 142, 38, 51, 130, 26, 222, 105, 118, 208, 38,
-      170, 97, 237, 59>>, % Info Hash
+    <<200, 23, 161, 167, 183, 43, 142, 38, 51, 130, 26, 222, 105, 118, 208, 38, 170, 97, 237, 59>>, % Info Hash
     "-AZ4004-znmphhbrij37" % Peer ID
   ])),
   case gen_tcp:recv(Socket, 68) of
@@ -23,15 +22,12 @@ start_peer(Host, Port) ->
         _PeerID:20/binary
       >> = Bin,
       spawn(?MODULE, peer_loop, [Socket, InfoHash]);
-    {error,closed} ->
-      io:format("The connection has been closed. Perhaps you already have a connection open.~n");
     Other ->
-      io:format("Weird Match: ~p~n", [Other])
+      io:format("Unexpected Match: ~p~n", [Other])
   end.
 
 peer_loop(Socket, InfoHash) ->
-  {ok,Bin} = gen_tcp:recv(Socket, 0),
-  io:format("Tail?: ~p~n", [Bin]),
+  read_bitfield(Socket, InfoHash),
   inet:setopts(Socket,[{active,true}]),
   receive
     ping ->
@@ -45,3 +41,13 @@ peer_loop(Socket, InfoHash) ->
       peer_loop(Socket, InfoHash)
   end.
 
+read_bitfield(Socket, _InfoHash) ->
+  {ok,<<BinaryLength:4/binary, 5>>} = gen_tcp:recv(Socket, 5),
+  Length = four_byte_integer_from_binary(BinaryLength) - 1,
+  {ok,Bin} = gen_tcp:recv(Socket, Length),
+  io:format("Payload: ~p~n", [Bin]).
+
+
+four_byte_integer_from_binary(Binary) ->
+  <<B0, B1, B2, B3>> = Binary,
+  (B0 bsl 24) + (B1 bsl 16) + (B2 bsl 8) + B3.
