@@ -2,10 +2,13 @@
 -export([start_peer/3]).
 -compile(export_all).
 
+% Spawns a new peer process and returns the pid.
 start_peer(Host, Port, InfoHash) ->
   spawn(?MODULE, start_loop, [Host, Port, InfoHash]).
 
 
+% Creates the connection to the peer and handshakes before handing off to the
+% main loop.
 start_loop(Host, Port, InfoHash) ->
   io:format("Starting loop for ~p~n", [InfoHash]),
   {ok, Socket} = gen_tcp:connect(Host, Port, [binary, {active, true}]),
@@ -13,6 +16,8 @@ start_loop(Host, Port, InfoHash) ->
   loop(Socket).
 
 
+% This loop handles keepalives, closed connections and passes on messages to
+% their own methods.
 loop(Socket) ->
   receive
     {tcp,Socket,<<0,0,0,0,0,0,0,0>>} ->
@@ -34,6 +39,8 @@ loop(Socket) ->
   end.
 
 
+% Each message has it's own method. Any data tacked onto the end of a message is
+% passed back into this method until there is no more data, which returns ok.
 handle_message(<<>>) ->
   ok;
 
@@ -51,6 +58,7 @@ handle_message(Other) ->
   io:format("Got a weird message: ~p~n", [Other]).
 
 
+% Sends and receives the initial handshake message
 handshake(Socket, InfoHash) ->
   gen_tcp:send(Socket, list_to_binary([
     19,                    % Protocol string length
@@ -72,10 +80,12 @@ handshake(Socket, InfoHash) ->
   end.
 
 
+% Sends a message to keep the connection open.
 send_keepalive(Socket) ->
   gen_tcp:send(Socket, <<0,0,0,0,0,0,0,0>>).
 
 
+% Will convert the binary into an integer by bitshifting each byte left.
 binary_to_multibyte_integer(Binary) ->
   List = binary_to_list(Binary),
   list_to_multibyte_integer(List, 0).
