@@ -6,7 +6,7 @@ start_peer(Host, Port, InfoHash) ->
   spawn(?MODULE, start_loop, [Host, Port, InfoHash]).
 
 start_loop(Host, Port, InfoHash) ->
-  io:format("Starting loop~n"),
+  io:format("Starting loop for ~p~n", [InfoHash]),
   {ok, Socket} = gen_tcp:connect(Host, Port, [binary, {active, true}]),
   ok = send_handshake(Socket, InfoHash),
   loop(Socket).
@@ -39,10 +39,6 @@ loop(Socket) ->
 
     {tcp_closed,Socket} ->
       io:format("Connection was closed~n");
-
-    {ReturnAddress, socket} ->
-      ReturnAddress ! {ok, Socket},
-      bittorrent:loop(Socket);
 
     Anything ->
       io:format("Got ~p~n", [Anything]),
