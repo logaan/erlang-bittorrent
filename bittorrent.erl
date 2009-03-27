@@ -4,7 +4,7 @@
 
 % Spawns a new peer process and returns the pid.
 start_peer(Host, Port, InfoHash) ->
-  spawn(?MODULE, start_loop, [Host, Port, InfoHash]).
+  spawn_link(?MODULE, start_loop, [Host, Port, InfoHash]).
 
 
 % Creates the connection to the peer and handshakes before handing off to the
