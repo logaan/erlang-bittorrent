@@ -48,6 +48,11 @@ handle_message(<<0,0,0,1,1, Tail/binary>>) ->
   io:format("You are unchoked~n"),
   handle_message(Tail);
 
+handle_message(<<0,0,0,5, 4, Payload:4/binary, Tail/binary>>) ->
+  PieceNumber = binary_to_multibyte_integer(Payload),
+  io:format("The peer has piece ~p~n", [PieceNumber]),
+  handle_message(Tail);
+
 handle_message(<<MessageLength:4/binary, 5, Tail/binary>>) ->
   Length  = binary_to_multibyte_integer(MessageLength) - 1,
   <<Payload:Length/binary, UnusedTail/binary>> = Tail,
