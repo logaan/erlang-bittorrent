@@ -20,20 +20,30 @@ start_loop(Host, Port, InfoHash) ->
 % their own methods.
 loop(Socket) ->
   receive
+
+    % Keepalive
     {tcp,Socket,<<0,0,0,0,0,0,0,0>>} ->
       io:format("Got a keepalive~n"),
       send_keepalive(Socket),
       bittorrent:loop(Socket);
 
+    % Peer wire message
     {tcp,Socket,<<MessageLength:4/binary, MessageID/integer, Tail/binary>>} ->
       handle_message(list_to_binary([MessageLength, MessageID, Tail])),
       bittorrent:loop(Socket);
 
+    % Closed connection
     {tcp_closed,Socket} ->
       io:format("Connection was closed~n");
 
-    Anything ->
-      io:format("Got ~p~n", [Anything]),
+    % Socket request
+    {socket,Sender} ->
+      Sender ! Socket,
+      bittorrent:loop(Socket);
+
+    % Unknown message
+    Unknown ->
+      io:format("Got ~p~n", [Unknown]),
       bittorrent:loop(Socket)
 
   end.
@@ -44,16 +54,16 @@ loop(Socket) ->
 handle_message(<<>>) ->
   ok;
 
-handle_message(<<0,0,0,1,1, Tail/binary>>) ->
+handle_message(<<0,0,0,1,1,Tail/binary>>) ->
   io:format("You are unchoked~n"),
   handle_message(Tail);
 
-handle_message(<<0,0,0,5, 4, Payload:4/binary, Tail/binary>>) ->
+handle_message(<<0,0,0,5,4,Payload:4/binary, Tail/binary>>) ->
   PieceNumber = binary_to_multibyte_integer(Payload),
   io:format("The peer has piece ~p~n", [PieceNumber]),
   handle_message(Tail);
 
-handle_message(<<MessageLength:4/binary, 5, Tail/binary>>) ->
+handle_message(<<MessageLength:4/binary,5,Tail/binary>>) ->
   Length  = binary_to_multibyte_integer(MessageLength) - 1,
   <<Payload:Length/binary, UnusedTail/binary>> = Tail,
   io:format("Received bitfield of length ~p with payload ~n~p~n", [Length, Payload]),
@@ -89,6 +99,14 @@ handshake(Socket, InfoHash) ->
 send_keepalive(Socket) ->
   gen_tcp:send(Socket, <<0,0,0,0,0,0,0,0>>).
 
+% Let the peer know you're interested
+send_interested(Socket) ->
+  gen_tcp:send(Socket, <<0,0,0,1,2>>).
+
+% Request part of a piece
+send_request(Socket, PieceIndex, BlockOffset, BlockLength) ->
+  gen_tcp:send(Socket, <<0,0,0,13,6,PieceIndex,BlockOffset,BlockLength>>).
+
 
 % Will convert the binary into an integer by bitshifting each byte left.
 binary_to_multibyte_integer(Binary) ->
@@ -102,3 +120,15 @@ list_to_multibyte_integer([H|T], Result) ->
   NewResult = (Result bsl 8) + H,
   list_to_multibyte_integer(T, NewResult).
 
+
+% Will convert a number to a multibyte integer of specified length
+number_to_multibyte_integer(Number, NumBytes) ->
+    lists:reverse(lists:flatten(number_to_multibyte_integer(Number, NumBytes, []))).
+
+number_to_multibyte_integer(_Number, 0, ByteList) ->
+    ByteList;
+number_to_multibyte_integer(Number, NumBytes, ByteList) ->
+    BitShift = ((NumBytes - 1) * 8),
+    Head = Number bsr BitShift,
+    Tail = Number - (Head bsl BitShift),
+    number_to_multibyte_integer(Tail, NumBytes - 1, [Head|ByteList]).
