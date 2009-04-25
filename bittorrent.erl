@@ -113,7 +113,7 @@ handle_message(<<MessageLength:4/binary,5,Tail/binary>>) ->
   Length  = multibyte:binary_to_multibyte_integer(MessageLength) - 1,
   <<Payload:Length/binary, UnusedTail/binary>> = Tail,
   master ! received_bitfield,
-  io:format("Received bitfield of length ~p with payload ~n~p~n", [Length, Payload]),
+  io:format("Received bitfield of length ~p with payload ~p~n", [Length, Payload]),
   handle_message(UnusedTail);
 
 % 6. Request
