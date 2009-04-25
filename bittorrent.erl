@@ -1,9 +1,10 @@
 -module(bittorrent).
--export([start_peer/3]).
+-export([start_peer/4]).
 -compile(export_all).
 
 % Spawns a new peer process and returns the pid.
-start_peer(Host, Port, InfoHash) ->
+start_peer(Master, Host, Port, InfoHash) ->
+  register(master, Master),
   spawn_link(?MODULE, start_loop, [Host, Port, InfoHash]).
 
 
@@ -13,8 +14,7 @@ start_loop(Host, Port, InfoHash) ->
   io:format("Starting loop for ~p~n", [InfoHash]),
   {ok, Socket} = gen_tcp:connect(Host, Port, [binary, {active, true}]),
   {ok, _PeerID} = handshake(Socket, InfoHash),
-  send_bitfield(Socket, [255,239,248,255,201,38,102,30,141,233,194,255,66,27,39,218,115,174,96,87,252,102,255,16,192,223,128,94,248,105,176,163,252,29,66,168,255,48,130,225,50,118,64,168,38,68,64,42,21,173,32,47,133,142,94,48,255,73,131,144,255,255,255,255,200,110,68,229,246,192,65,76,42,14,19,118,146,138,201,186,144,94,44,84,244,200,204,184,150,182,102,240,194,169,116,50,165,12,21,30,89,224,29,37,87,59,124,3,16,163,130,178,242,215,66,240,5,175,37,31,97,130,68,165,4,177,66,222,131,78,215,40,88,31,239,244,168,201,144,29,255,29,115,80,201,96,146,44,112,98,112,132,55,168,34,65,129,51,120,185,201,6,238,175,124,24,202,140,226,164,81,12,244,245,87]),
-  send_unchoke(Socket),
+  master ! {socket, Socket},
   loop(Socket).
 
 
@@ -56,26 +56,37 @@ loop(Socket) ->
 handle_message(<<>>) ->
   ok;
 
-% Unchoke
+% 0. Choke
+handle_message(<<0,0,0,1,0,Tail/binary>>) ->
+  io:format("You are choked~n"),
+  handle_message(Tail);
+
+% 1. Unchoke
 handle_message(<<0,0,0,1,1,Tail/binary>>) ->
   io:format("You are unchoked~n"),
   handle_message(Tail);
 
-% Interested
+% 2. Interested
 handle_message(<<0,0,0,1,2,Tail/binary>>) ->
   io:format("The peer is interested~n"),
   handle_message(Tail);
 
-% Have
+% 3. Uninterested
+handle_message(<<0,0,0,1,3,Tail/binary>>) ->
+  io:format("The peer is uninterested~n"),
+  handle_message(Tail);
+
+% 4. Have
 handle_message(<<0,0,0,5,4,Payload:4/binary, Tail/binary>>) ->
   PieceNumber = multibyte:binary_to_multibyte_integer(Payload),
   io:format("The peer has piece ~p~n", [PieceNumber]),
   handle_message(Tail);
 
-% Bitfield
+% 5. Bitfield
 handle_message(<<MessageLength:4/binary,5,Tail/binary>>) ->
   Length  = multibyte:binary_to_multibyte_integer(MessageLength) - 1,
   <<Payload:Length/binary, UnusedTail/binary>> = Tail,
+  master ! received_bitfield,
   io:format("Received bitfield of length ~p with payload ~n~p~n", [Length, Payload]),
   handle_message(UnusedTail);
 
@@ -107,25 +118,47 @@ handshake(Socket, InfoHash) ->
 
 % Sends a message to keep the connection open.
 send_keepalive(Socket) ->
+  io:format("Sending keepalive~n"),
   gen_tcp:send(Socket, <<0,0,0,0,0,0,0,0>>).
+
+% Choke
+send_choke(Socket) ->
+  io:format("Sending Choke~n"),
+  gen_tcp:send(Socket, <<0,0,0,1,0>>).
 
 % Unchoke
 send_unchoke(Socket) ->
+  io:format("Sending unchoke~n"),
   gen_tcp:send(Socket, <<0,0,0,1,1>>).
 
 % Interested
 send_interested(Socket) ->
+  io:format("Sending interested~n"),
   gen_tcp:send(Socket, <<0,0,0,1,2>>).
 
-% Request
-send_request(Socket, PieceIndex, BlockOffset, BlockLength) ->
-  gen_tcp:send(Socket, <<0,0,0,13,6,PieceIndex,BlockOffset,BlockLength>>).
+% Uninterested
+send_uninterested(Socket) ->
+  io:format("Sending uninterested~n"),
+  gen_tcp:send(Socket, <<0,0,0,1,3>>).
 
+% Have
+send_have(Socket, PieceIndex) ->
+  MultiByteIndex = multibyte:number_to_multibyte_integer(PieceIndex, 4),
+  io:format("Sending have ~p~n", [MultiByteIndex]),
+  gen_tcp:send(Socket, list_to_binary([0,0,0,5,4,MultiByteIndex ])).
+
+% Bittfield
 send_bitfield(Socket, Bitfield) ->
+  io:format("Sending bittfield of ~p~n", [Bitfield]),
   Payload = list_to_binary([
     multibyte:number_to_multibyte_integer(length(Bitfield) + 1,4),
     5,
     Bitfield
   ]),
   gen_tcp:send(Socket, Payload).
+
+% Request
+send_request(Socket, PieceIndex, BlockOffset, BlockLength) ->
+  io:format("Sending request for ~p~n", [PieceIndex]),
+  gen_tcp:send(Socket, <<0,0,0,13,6,PieceIndex,BlockOffset,BlockLength>>).
 
