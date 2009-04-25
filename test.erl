@@ -19,9 +19,5 @@ main(_) ->
   end,
   bittorrent:send_unchoke(Socket),
 
-  % timer:sleep(100000).
-  % erlang:display("sending interest and request"),
-  % bittorrent:send_interested(Socket),
-  % bittorrent:send_request(Socket, 399, 1, 8),
   receive AnythingAgain -> erlang:display(AnythingAgain) end.
 

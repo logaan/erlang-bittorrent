@@ -51,6 +51,32 @@ loop(Socket) ->
   end.
 
 
+% Sends and receives the initial handshake message
+handshake(Socket, InfoHash) ->
+  gen_tcp:send(Socket, list_to_binary([
+    19,                    % Protocol string length
+    "BitTorrent protocol", % Protocol string
+    <<0,0,0,0,0,0,0,0>>,   % Reseved space
+    InfoHash,              % Info Hash
+    "-AZ4004-znmphhbrij37" % Peer ID
+  ])),
+  receive
+    {tcp,Socket,<<
+        19,
+        "BitTorrent protocol",
+        _Reserved:8/binary,
+        _InfoHash:20/binary,
+        PeerID:20/binary
+      >>} ->
+      io:format("Received handshake from ~p~n", [PeerID]),
+      {ok, PeerID}
+  end.
+
+
+%
+% RECEIVING MESSAGES
+%
+
 % Each message has it's own method. Any data tacked onto the end of a message is
 % passed back into this method until there is no more data, which returns ok.
 handle_message(<<>>) ->
@@ -90,64 +116,64 @@ handle_message(<<MessageLength:4/binary,5,Tail/binary>>) ->
   io:format("Received bitfield of length ~p with payload ~n~p~n", [Length, Payload]),
   handle_message(UnusedTail);
 
+% 6. Request
+handle_message(<<0,0,0,13,6,PieceIndex:4/binary,BlockOffset:4/binary,BlockLength:4/binary,Tail/binary>>) ->
+  io:format("Received request for ~p bytes ~p bytes into piece ~p~n", [
+      multibyte:binary_to_multibyte_integer(BlockLength),
+      multibyte:binary_to_multibyte_integer(BlockOffset),
+      multibyte:binary_to_multibyte_integer(PieceIndex)
+  ]),
+  handle_message(Tail);
+
+% 8. Cancel
+handle_message(<<0,0,0,13,8,PieceIndex:4/binary,BlockOffset:4/binary,BlockLength:4/binary,Tail/binary>>) ->
+  io:format("Had request cancelled for ~p bytes ~p bytes into piece ~p~n", [
+      multibyte:binary_to_multibyte_integer(BlockLength),
+      multibyte:binary_to_multibyte_integer(BlockOffset),
+      multibyte:binary_to_multibyte_integer(PieceIndex)
+  ]),
+  handle_message(Tail);
+
+% Other
 handle_message(Other) ->
   io:format("Got a weird message: ~p~n", [Other]).
 
-
-% Sends and receives the initial handshake message
-handshake(Socket, InfoHash) ->
-  gen_tcp:send(Socket, list_to_binary([
-    19,                    % Protocol string length
-    "BitTorrent protocol", % Protocol string
-    <<0,0,0,0,0,0,0,0>>,   % Reseved space
-    InfoHash,              % Info Hash
-    "-AZ4004-znmphhbrij37" % Peer ID
-  ])),
-  receive
-    {tcp,Socket,<<
-        19,
-        "BitTorrent protocol",
-        _Reserved:8/binary,
-        _InfoHash:20/binary,
-        PeerID:20/binary
-      >>} ->
-      io:format("Received handshake from ~p~n", [PeerID]),
-      {ok, PeerID}
-  end.
-
+%
+% SENDING MESSAGES
+%
 
 % Sends a message to keep the connection open.
 send_keepalive(Socket) ->
   io:format("Sending keepalive~n"),
   gen_tcp:send(Socket, <<0,0,0,0,0,0,0,0>>).
 
-% Choke
+% 0. Choke
 send_choke(Socket) ->
   io:format("Sending Choke~n"),
   gen_tcp:send(Socket, <<0,0,0,1,0>>).
 
-% Unchoke
+% 1. Unchoke
 send_unchoke(Socket) ->
   io:format("Sending unchoke~n"),
   gen_tcp:send(Socket, <<0,0,0,1,1>>).
 
-% Interested
+% 2. Interested
 send_interested(Socket) ->
   io:format("Sending interested~n"),
   gen_tcp:send(Socket, <<0,0,0,1,2>>).
 
-% Uninterested
+% 3. Uninterested
 send_uninterested(Socket) ->
   io:format("Sending uninterested~n"),
   gen_tcp:send(Socket, <<0,0,0,1,3>>).
 
-% Have
+% 4. Have
 send_have(Socket, PieceIndex) ->
   MultiByteIndex = multibyte:number_to_multibyte_integer(PieceIndex, 4),
   io:format("Sending have ~p~n", [MultiByteIndex]),
   gen_tcp:send(Socket, list_to_binary([0,0,0,5,4,MultiByteIndex ])).
 
-% Bittfield
+% 5. Bittfield
 send_bitfield(Socket, Bitfield) ->
   io:format("Sending bittfield of ~p~n", [Bitfield]),
   Payload = list_to_binary([
@@ -157,7 +183,7 @@ send_bitfield(Socket, Bitfield) ->
   ]),
   gen_tcp:send(Socket, Payload).
 
-% Request
+% 6. Request
 send_request(Socket, PieceIndex, BlockOffset, BlockLength) ->
   io:format("Sending request for ~p~n", [PieceIndex]),
   gen_tcp:send(Socket, <<0,0,0,13,6,PieceIndex,BlockOffset,BlockLength>>).
