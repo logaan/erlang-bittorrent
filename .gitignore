@@ -1,2 +1,3 @@
 *.beam
 *.swp
+erl_crash.dump
