@@ -9,7 +9,9 @@ main(_) ->
   bittorrent:send_bitfield(Socket, [2]),
   bittorrent:send_have(Socket, 1),
 
-  receive received_bitfield -> ok end,
+  % Not sure what this was here for. Perhaps to manually nudge the
+  % process along?
+  % receive received_bitfield -> ok end,
   bittorrent:send_choke(Socket),
 
   receive

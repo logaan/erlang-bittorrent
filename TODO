@@ -1,0 +1,8 @@
+TODO
+- Send a piece
+  - Write the send call write into the request function
+  - Eventually have a sender process that takes requests in it's mailbox
+    and just loops through them sending them out
+- Implement piece message
+  - Piece index and block offset come straight from the request
+  - I guess the block data comes from reading the file?
