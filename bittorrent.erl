@@ -95,6 +95,7 @@ handle_message(<<0,0,0,1,1,Tail/binary>>) ->
 % 2. Interested
 handle_message(<<0,0,0,1,2,Tail/binary>>) ->
   io:format("The peer is interested~n"),
+  master ! interested,
   handle_message(Tail);
 
 % 3. Uninterested
@@ -123,6 +124,7 @@ handle_message(<<0,0,0,13,6,PieceIndex:4/binary,BlockOffset:4/binary,BlockLength
       multibyte:binary_to_multibyte_integer(BlockOffset),
       multibyte:binary_to_multibyte_integer(PieceIndex)
   ]),
+  master ! {received_requst, PieceIndex, BlockOffset, BlockLength},
   handle_message(Tail);
 
 % 8. Cancel
@@ -187,4 +189,15 @@ send_bitfield(Socket, Bitfield) ->
 send_request(Socket, PieceIndex, BlockOffset, BlockLength) ->
   io:format("Sending request for ~p~n", [PieceIndex]),
   gen_tcp:send(Socket, <<0,0,0,13,6,PieceIndex,BlockOffset,BlockLength>>).
+
+% 7. Piece
+% Piece index in 4, Block Offset is 4, Block data is length(), ID is 1
+send_piece(Socket, PieceIndex, BlockOffset, BlockData) ->
+  io:format("Sending piece ~p~n", [PieceIndex]),
+  Payload = list_to_binary([
+    multibyte:number_to_multibyte_integer(length(BlockData) + 9,4),
+    7, PieceIndex, BlockOffset, BlockData
+  ]),
+  % io:format("Payload: ~p~n", [Payload]),
+  gen_tcp:send(Socket, Payload).
 
