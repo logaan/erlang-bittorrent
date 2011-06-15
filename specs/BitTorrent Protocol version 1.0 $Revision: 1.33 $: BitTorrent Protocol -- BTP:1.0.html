@@ -1,0 +1,1906 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en"><head><title>BitTorrent Protocol version 1.0 $Revision: 1.33 $: BitTorrent Protocol -- BTP/1.0</title>
+<meta http-equiv="Expires" content="Sun, 14 Aug 2005 13:36:43 +0000">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="description" content="BitTorrent Protocol -- BTP/1.0">
+<meta name="generator" content="xml2rfc v1.29 (http://xml.resource.org/)">
+<style type='text/css'>
+<!--
+    body {
+        font-family: verdana, charcoal, helvetica, arial, sans-serif;
+        margin: 2em;
+        font-size: small ; color: #000000 ; background-color: #ffffff ; }
+    .title { color: #990000; font-size: x-large ;
+        font-weight: bold; text-align: right;
+        font-family: helvetica, monaco, "MS Sans Serif", arial, sans-serif;
+        background-color: transparent; }
+    .filename { color: #666666; font-size: 18px; line-height: 28px;
+        font-weight: bold; text-align: right;
+        font-family: helvetica, arial, sans-serif;
+        background-color: transparent; }
+    td.rfcbug { background-color: #000000 ; width: 30px ; height: 30px ;
+        text-align: justify; vertical-align: middle ; padding-top: 2px ; }
+    td.rfcbug span.RFC { color: #666666; font-weight: bold; text-decoration: none;
+        background-color: #000000 ;
+        font-family: monaco, charcoal, geneva, "MS Sans Serif", helvetica, verdana, sans-serif;
+        font-size: x-small ; }
+    td.rfcbug span.hotText { color: #ffffff; font-weight: normal; text-decoration: none;
+        text-align: center ;
+        font-family: charcoal, monaco, geneva, "MS Sans Serif", helvetica, verdana, sans-serif;
+        font-size: x-small ; background-color: #000000; }
+/* info code from SantaKlauss at http://www.madaboutstyle.com/tooltip2.html */
+    div#counter{margin-top: 100px}
+
+    a.info{
+        position:relative; /*this is the key*/
+        z-index:24;
+        text-decoration:none}
+
+    a.info:hover{z-index:25; background-color:#990000 ; color: #ffffff ;}
+
+    a.info span{display: none}
+
+    a.info:hover span.info{ /*the span will display just on :hover state*/
+        display:block;
+        position:absolute;
+        font-size: smaller ;
+        top:2em; left:2em; width:15em;
+        padding: 2px ;
+        border:1px solid #333333;
+        background-color:#eeeeee; color:#990000;
+        text-align: left ;}
+
+     A { font-weight: bold; }
+     A:link { color: #990000; background-color: transparent ; }
+     A:visited { color: #333333; background-color: transparent ; }
+     A:active { color: #333333; background-color: transparent ; }
+
+    p { margin-left: 2em; margin-right: 2em; }
+    p.copyright { font-size: x-small ; }
+    p.toc { font-size: small ; font-weight: bold ; margin-left: 3em ;}
+
+    span.emph { font-style: italic; }
+    span.strong { font-weight: bold; }
+    span.verb, span.vbare { font-family: "Courier New", Courier, monospace ; }
+
+    span.vemph { font-style: italic; font-family: "Courier New", Courier, monospace ; }
+    span.vstrong { font-weight: bold; font-family: "Courier New", Courier, monospace ; }
+    span.vdeluxe { font-weight: bold; font-style: italic; font-family: "Courier New", Courier, monospace ; }
+
+    ol.text { margin-left: 2em; margin-right: 2em; }
+    ul.text { margin-left: 2em; margin-right: 2em; }
+    li { margin-left: 3em;  }
+
+    pre { margin-left: 3em; color: #333333;  background-color: transparent;
+        font-family: "Courier New", Courier, monospace ; font-size: small ;
+        text-align: left;
+        }
+
+    h3 { color: #333333; font-size: medium ;
+        font-family: helvetica, arial, sans-serif ;
+        background-color: transparent; }
+    h4 { font-size: small; font-family: helvetica, arial, sans-serif ; }
+
+    table.bug { width: 30px ; height: 15px ; }
+    td.bug { color: #ffffff ; background-color: #990000 ;
+        text-align: center ; width: 30px ; height: 15px ;
+         }
+    td.bug A.link2 { color: #ffffff ; font-weight: bold;
+        text-decoration: none;
+        font-family: monaco, charcoal, geneva, "MS Sans Serif", helvetica, sans-serif;
+        font-size: x-small ; background-color: transparent }
+
+    td.header { color: #ffffff; font-size: x-small ;
+        font-family: arial, helvetica, sans-serif; vertical-align: top;
+        background-color: #666666 ; width: 33% ; }
+    td.author { font-weight: bold; margin-left: 4em; font-size: x-small ; }
+    td.author-text { font-size: x-small; }
+    table.data { vertical-align: top ; border-collapse: collapse ;
+        border-style: solid solid solid solid ;
+        border-color: black black black black ;
+        font-size: small ; text-align: center ; }
+    table.data th { font-weight: bold ;
+        border-style: solid solid solid solid ;
+        border-color: black black black black ; }
+    table.data td {
+        border-style: solid solid solid solid ;
+        border-color: #333333 #333333 #333333 #333333 ; }
+
+    hr { height: 1px }
+-->
+</style>
+</head>
+<body>
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<table summary="layout" width="66%" border="0" cellpadding="0" cellspacing="0"><tr><td><table summary="layout" width="100%" border="0" cellpadding="2" cellspacing="1">
+<tr><td class="header">BitTorrent Protocol version 1.0</td><td class="header">J. Fonseca</td></tr>
+<tr><td class="header">$Revision: 1.33 $</td><td class="header">B. Reza</td></tr>
+<tr><td class="header">&nbsp;</td><td class="header">L. Fjeldsted</td></tr>
+<tr><td class="header">&nbsp;</td><td class="header">DIKU</td></tr>
+<tr><td class="header">&nbsp;</td><td class="header">April 2005</td></tr>
+</table></td></tr></table>
+<div align="right"><span class="title"><br />BitTorrent Protocol -- BTP/1.0</span></div>
+
+<h3>Abstract</h3>
+
+<p>
+
+   This document describes the BitTorrent Protocol version 1.0 referred
+   to as "BTP/1.0". The BitTorrent Protocol (BTP) is a protocol for
+   collaborative file distribution across the Internet and has been in
+   place on the Internet since 2002. It is best classified as a
+   peer-to-peer (P2P) protocol, although it also contains highly
+   centralized elements.  BTP has already been implemented many times
+   for different platforms, and could well be said to be a mature
+   protocol, although a formal, detailed and complete description has so
+   far been lacking.
+
+
+</p>
+<p>
+
+   BTP was devised and implemented by Bram Cohen as a P2P replacement to
+   standard File Transfer Protocol (FTP) to be used in places where the
+   usage of an FTP implementation poses too much strain on the server in
+   terms of request-processing and sheer bandwidth. Normally a client does
+   not use her upload capacity while downloading a file. The BTP approach
+   capitalizes on this fact by having clients upload bits of the data to
+   each other. In comparison to FTP this adds huge scalability and
+   cost-management advantages.
+
+
+</p><a name="toc"></a><br /><hr />
+<h3>Table of Contents</h3>
+<p class="toc">
+<a href="#anchor1">1.</a>&nbsp;
+Introduction<br />
+<a href="#anchor2">1.1</a>&nbsp;
+Extensions<br />
+<a href="#anchor3">1.2</a>&nbsp;
+Audience<br />
+<a href="#anchor4">1.3</a>&nbsp;
+Terminology<br />
+<a href="#anchor6">1.4</a>&nbsp;
+Overall Operation<br />
+<a href="#anchor7">2.</a>&nbsp;
+Bencoding <br />
+<a href="#anchor8">2.1</a>&nbsp;
+Scalar Types<br />
+<a href="#anchor9">2.2</a>&nbsp;
+Compound Types<br />
+<a href="#anchor10">3.</a>&nbsp;
+Pieces and Blocks<br />
+<a href="#anchor11">3.1</a>&nbsp;
+Pieces <br />
+<a href="#anchor12">3.2</a>&nbsp;
+Blocks<br />
+<a href="#anchor13">4.</a>&nbsp;
+The Metainfo File<br />
+<a href="#anchor14">4.1</a>&nbsp;
+The Structure of the Metainfo File<br />
+<a href="#anchor15">4.1.1</a>&nbsp;
+Single File Torrents<br />
+<a href="#anchor16">4.1.2</a>&nbsp;
+Multi File Torrents<br />
+<a href="#anchor17">5.</a>&nbsp;
+The Tracker HTTP Protocol<br />
+<a href="#anchor18">5.1</a>&nbsp;
+Request<br />
+<a href="#anchor19">5.2</a>&nbsp;
+Response<br />
+<a href="#anchor20">6.</a>&nbsp;
+The Peer Wire Protocol<br />
+<a href="#peer-wire-guidelines">6.1</a>&nbsp;
+Peer Wire Guidelines<br />
+<a href="#anchor21">6.2</a>&nbsp;
+Handshaking<br />
+<a href="#anchor22">6.3</a>&nbsp;
+Message Communication<br />
+<a href="#anchor23">6.3.1</a>&nbsp;
+Peer States<br />
+<a href="#anchor24">6.3.2</a>&nbsp;
+Peer Wire Messages<br />
+<a href="#anchor25">6.3.3</a>&nbsp;
+Choke<br />
+<a href="#anchor26">6.3.4</a>&nbsp;
+Unchoke<br />
+<a href="#anchor27">6.3.5</a>&nbsp;
+Interested<br />
+<a href="#anchor28">6.3.6</a>&nbsp;
+Uninterested<br />
+<a href="#anchor29">6.3.7</a>&nbsp;
+Have<br />
+<a href="#anchor30">6.3.8</a>&nbsp;
+Bitfield<br />
+<a href="#anchor31">6.3.9</a>&nbsp;
+Request<br />
+<a href="#anchor32">6.3.10</a>&nbsp;
+Piece<br />
+<a href="#anchor33">6.3.11</a>&nbsp;
+Cancel<br />
+<a href="#anchor34">6.4</a>&nbsp;
+The End Game<br />
+<a href="#anchor35">6.5</a>&nbsp;
+Piece Selection Strategy<br />
+<a href="#peer-selection-strategy">6.6</a>&nbsp;
+Peer Selection Strategy<br />
+<a href="#security-considerations">7.</a>&nbsp;
+Security Consideration<br />
+<a href="#anchor36">7.1</a>&nbsp;
+Tracker HTTP Protocol Issues<br />
+<a href="#anchor37">7.2</a>&nbsp;
+Denial of Service Attacks on Trackers<br />
+<a href="#anchor38">7.3</a>&nbsp;
+Peer Identity Issues<br />
+<a href="#anchor39">7.4</a>&nbsp;
+DNS Spoofing<br />
+<a href="#anchor40">7.5</a>&nbsp;
+Issues with File and Directory Names<br />
+<a href="#anchor41">7.6</a>&nbsp;
+Validating the Integrity of Data Exchanged Between Peers<br />
+<a href="#anchor42">7.7</a>&nbsp;
+Transfer of Sensitive Information<br />
+<a href="#IANA">8.</a>&nbsp;
+IANA Considerations<br />
+<a href="#rfc.references1">9.</a>&nbsp;
+References<br />
+<a href="#rfc.authors">&#167;</a>&nbsp;
+Authors' Addresses<br />
+</p>
+<br clear="all" />
+
+<a name="anchor1"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.1"></a><h3>1.&nbsp;Introduction</h3>
+
+<p>
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in
+   <a class="info" href="#RFC2119">RFC 2119<span> (</span><span class="info">Bradner, S., &ldquo;Key words for use in RFCs to Indicate Requirement Levels,&rdquo; March&nbsp;1997.</span><span>)</span></a>[3].
+
+
+</p>
+<p>
+
+   The <a class="info" href="#RFC0959">File Transfer Protocol (FTP)<span> (</span><span class="info">Postel, J. and J. Reynolds, &ldquo;File Transfer Protocol,&rdquo; October&nbsp;1985.</span><span>)</span></a>[1]  with
+   the recent additions of security extensions, still remains the
+   standard for secure and reliable transmission of large files over the
+   Internet. However, its highly centralized client-server approach also
+   means, it is inadequate for mass publication of files, where a single
+   point may expect to be requested by a critically large number of
+   clients simultaneously. To remedy this situation many organizations
+   either implement a cap on the number of simultaneous requests, or
+   spread the load on multiple mirror servers. Needless to say both
+   approaches have their drawbacks, and a solution that addresses these
+   problems is highly needed.
+
+
+</p>
+<p>
+
+   The approach in BitTorrent Protocol (BTP) is to spread the load not on
+   mirror servers, but to the clients themselves by having them upload bits of
+   the file to each other while downloading it.  Since the clients usually do
+   not utilize their upload capacity while fetching a file, this approach does
+   not put the clients in any disadvantage. This has the added advantage that
+   even small organizations with limited resources can publish large files on
+   the Internet without having to invest in costly infrastructure.
+
+
+</p>
+<a name="rfc.section.1.1"></a><h4><a name="anchor2">1.1</a>&nbsp;Extensions</h4>
+
+<p>
+  
+   Since the introduction of BTP many modifications and extensions have
+   been proposed by individuals and community forums. To the extent that
+   these extensions have become part of what the BitTorrent community
+   considers best practice they have been included in this document.
+   However, many extensions have been omitted either because they have
+   been deemed to lack interoperability with existing implementations, or
+   because they are not regarded as being sufficiently mature.
+
+
+</p>
+<a name="rfc.section.1.2"></a><h4><a name="anchor3">1.2</a>&nbsp;Audience</h4>
+
+<p>
+
+   This document is aimed at developers who wish to implement BTP for a
+   particular platform. Also, system administrators and architects may
+   use this document to fully understand the implications of installing
+   an implementation of BTP. In particular, it is advised to study the
+   security implications in more detail, before installing an
+   implementation on a machine that also contains sensitive data.
+   Security implications are discussed in
+   <a class="info" href="#security-considerations">Section&nbsp;7<span> (</span><span class="info">Security Consideration</span><span>)</span></a>.
+
+
+</p>
+<a name="rfc.section.1.3"></a><h4><a name="anchor4">1.3</a>&nbsp;Terminology</h4>
+
+<blockquote class="text"><dl>
+<dt>Peer:</dt>
+<dd>
+
+	A peer is a node in a network participating in file sharing. It
+	can simultaneously act both as a server and a client to other
+	nodes on the network.
+
+
+</dd>
+<dt>Neighboring peers:</dt>
+<dd>
+
+	Peers to which a client has an active point to point TCP
+	connection.
+
+
+</dd>
+<dt>Client:</dt>
+<dd>
+
+	A client is a user agent (UA) that acts as a peer on behalf of
+	a user.
+
+
+</dd>
+<dt>Torrent:</dt>
+<dd>
+
+	A torrent is the term for the file (single-file torrent) or group of
+	files (multi-file torrent) the client is downloading.
+
+
+</dd>
+<dt>Swarm:</dt>
+<dd>
+
+	A network of peers that actively operate on a given torrent.
+
+
+</dd>
+<dt>Seeder:</dt>
+<dd>
+
+	A peer that has a complete copy of a torrent.
+
+
+</dd>
+<dt>Tracker:</dt>
+<dd>
+
+	A tracker is a centralized server that holds information about one or
+	more torrents and associated swarms. It functions as a gateway for
+	peers into a swarm.
+
+
+</dd>
+<dt>Metainfo file:</dt>
+<dd>
+
+	A text file that holds information about the torrent, e.g. the
+	URL of the tracker. It usually has the extension .torrent. 
+
+
+
+</dd>
+<dt>Peer ID:</dt>
+<dd>
+
+	A 20-byte string that identifies the peer. How the peer ID is
+	obtained is outside the scope of this document, but a peer must
+	make sure that the peer ID it uses has a very high probability
+	of being unique in the swarm.
+
+	
+
+
+</dd>
+<dt>Info hash:</dt>
+<dd>
+       A SHA1 hash that uniquely identifies the torrent. It is calculated from
+       data in the metainfo file.
+
+
+</dd>
+</dl></blockquote>
+<a name="rfc.section.1.4"></a><h4><a name="anchor6">1.4</a>&nbsp;Overall Operation</h4>
+
+<p>
+
+   BTP consists of two logically distinct protocols, namely the Tracker
+   HTTP Protocol (THP), and the Peer Wire Protocol (PWP). THP defines a
+   method for contacting a tracker for the purposes of joining a swarm,
+   reporting progress etc. PWP defines a mechanism for communication
+   between peers, and is thus responsible for carrying out the actual
+   download and upload of the torrent.
+
+
+</p>
+<p>
+
+   In order for a client to download a torrent the following steps must
+   be carried through: 
+
+
+</p>
+<ol class="text">
+<li>
+
+	A metainfo file must be retrieved.
+
+
+</li>
+<li>
+
+	Instructions that will allow the client to contact other peers
+	must be periodically requested from the tracker using THP.
+   
+
+</li>
+<li>
+
+	The torrent must be downloaded by connecting to peers in the
+	swarm and trading pieces using PWP.
+
+
+</li>
+</ol>
+<p>
+
+   To publish a torrent the following steps must be taken:
+
+
+</p>
+<ol class="text">
+<li>
+
+	A tracker must be set up.
+
+
+</li>
+<li>
+
+	A metainfo file pointing to the tracker and containing
+	information on the structure of the torrent must be produced and
+	published.
+     
+
+</li>
+<li>
+
+	At least one  seeder with access to the complete torrent must be set up.
+
+
+</li>
+</ol>
+<a name="anchor7"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.2"></a><h3>2.&nbsp;Bencoding </h3>
+
+<p>
+   Bencoding encodes data in a platform independent way.  In BTP/1.0 the
+   metainfo file and all responses from the tracker are encoded in the
+   bencoding format. The format specifies two scalar types (integers and
+   strings) and two compound types (lists and dictionaries).
+
+
+</p>
+<p>
+
+  The <a class="info" href="#RFC2234">Augmented BNF syntax<span> (</span><span class="info">Crocker, D., Ed. and P. Overell, &ldquo;Augmented BNF for Syntax Specifications: ABNF,&rdquo; November&nbsp;1997.</span><span>)</span></a>[5] for bencoding
+  format is:
+
+
+</p><pre>
+   dictionary = "d" 1*(string anytype) "e" ; non-empty dictionary
+   list       = "l" 1*anytype "e"          ; non-empty list
+   integer    = "i" signumber "e"
+   string     = number ":" &lt;number long sequence of any CHAR&gt;
+   anytype    = dictionary / list / integer / string
+   signumber  = "-" number / number
+   number     = 1*DIGIT
+   CHAR       = %x00-FF                    ; any 8-bit character
+   DIGIT      = "0" / "1" / "2" / "3" / "4" /
+                "5" / "6" / "7" / "8" / "9"</pre>
+
+<a name="rfc.section.2.1"></a><h4><a name="anchor8">2.1</a>&nbsp;Scalar Types</h4>
+
+<p>
+
+   Integers are encoded by prefixing a string containing the base ten
+   representation of the integer with the letter "i" and postfixing it
+   with the letter "e". E.g. the integer 123 is encoded as i123e.
+
+
+</p>
+<p>
+
+   Strings are encoded by prefixing the string content with the length
+   of the string followed by a colon. E.g. the string "announce" is
+   encoded as "8:announce".
+
+
+</p>
+<a name="rfc.section.2.2"></a><h4><a name="anchor9">2.2</a>&nbsp;Compound Types</h4>
+
+<p>
+
+   The compound types provides a mean to structure elements of any
+   bencoding type.
+
+
+</p>
+<p>
+
+   Lists are an arbitrary number of bencoded elements prefixed with the letter
+   "l" and postfixed with the letter "e". It follows that lists can contain
+   nested lists and dictionaries. For instance "li2e3:fooe" defines a list
+   containing the integer "2" and the string "foo".
+
+
+</p>
+<p>
+
+   Dictionaries are an arbitrary number of key/value pairs delimited by
+   the letter "d" at the beginning and the letter "e" at the end. All
+   keys are bencoded strings while the associated value can be any
+   bencoded element. E.g. "d5:monthi4e4:name5:aprile" defines a
+   dictionary holding the associations: "month" =&gt; "4" and "name"
+   =&gt; "april". All dictionary keys MUST be sorted.
+
+
+</p>
+<a name="anchor10"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.3"></a><h3>3.&nbsp;Pieces and Blocks</h3>
+
+<p>
+
+   
+   This section describes how a torrent is organized in pieces and
+   blocks. The torrent is divided into one or more pieces. Each piece
+   represents a range of data which it is possible to verify using a piece
+   SHA1 hash. When distributing data over PWP pieces are divided into one or
+   more blocks, as shown in the following diagram:
+
+
+
+</p><pre>
+              ---------------------------------------
+              | Piece #0 | Piece #1 | .. | Piece #N |
+              ---------------------------------------
+                      _-´            `-_
+                   _-´                  `-_
+                 ----------------------------
+                 | Block #0 | .. | Block #M |
+                 ----------------------------</pre>
+
+<a name="rfc.section.3.1"></a><h4><a name="anchor11">3.1</a>&nbsp;Pieces </h4>
+
+<p>
+
+    The number of pieces in the torrent is indicated in the metainfo
+    file. The size of each piece in the torrent remains fixed and can
+    be calculated using the following formula:
+
+
+</p><pre>
+	fixed_piece_size = size_of_torrent / number_of_pieces</pre>
+
+<p>
+
+    where "/" is the integer division operator. Only the last piece of the
+    torrent is allowed to have fewer bytes than the fixed piece size. 
+
+</p>
+<p>
+    The size of a piece is determined by the publisher of the torrent. A good
+    recommendation is to use a piece size so that the metainfo file does not
+    exceed 70 kilobytes.
+
+
+</p>
+<p>
+
+    For the sake of calculating the correct position of a piece within a
+    file, or files, the torrent is regarded as a single continuous byte
+    stream. In case the torrent consists of multiple files, it
+    is to be viewed as the concatenation of these files in the order of
+    their appearance in the metainfo file. Conceptually, the torrent is
+    only translated into files when all its pieces have been downloaded
+    and verified using their respective SHA1 values; although in practice
+    an implementation may choose a better approach in accordance with
+    local operating system and filesystem specific demands.
+
+
+</p>
+<a name="rfc.section.3.2"></a><h4><a name="anchor12">3.2</a>&nbsp;Blocks</h4>
+
+<p>
+
+    The size of a block is an implementation defined value that is not
+    dependant on the fixed piece size. Once a fixed size is
+    defined, the number of blocks per piece can be calculated using the
+    formula:
+
+
+</p><pre>
+	number_of_blocks = (fixed_piece_size / fixed_block_size)
+			 + !!(fixed_piece_size % fixed_block_size)</pre>
+
+<p>
+
+    where "%" denotes the modulus operator, and "!" the negation operator.
+    The negation operator is used to ensure that the last factor only
+    adds a value of 0 or 1 to the sum. Given the start offset of
+    the block its index within a piece can be calculated using the
+    formula:
+
+
+</p><pre>
+	block_index = block_offset % fixed_block_size</pre>
+
+<a name="anchor13"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.4"></a><h3>4.&nbsp;The Metainfo File</h3>
+
+<p>
+
+   The metainfo file provides the client with information on the tracker
+   location as well as the torrent to be downloaded. Besides listing
+   which files will result from downloading the torrent, it also lists
+   how the client should split up and verify individual pieces making up
+   the complete torrent.
+
+
+</p>
+<p>
+
+   In order for a client to recognize the metainfo file it SHOULD have
+   the extension .torrent and the associated the media type
+   "application/x-bittorrent". How the client retrieves the metainfo
+   file is beyond the scope of this document, however, the most
+   user-friendly approach is for a client to find the file on a web
+   page, click on it, and start the download immediately. This way, the
+   apparent complexity of BTP as opposed to FTP or HTTP transfer is
+   transparent to the user.
+
+
+</p>
+<a name="rfc.section.4.1"></a><h4><a name="anchor14">4.1</a>&nbsp;The Structure of the Metainfo File</h4>
+
+<p>
+
+   The metainfo file contains a bencoded dictionary with the following
+   structure. A key below is REQUIRED unless otherwise noted.
+
+
+</p>
+<blockquote class="text"><dl>
+<dt>'announce':</dt>
+<dd>
+
+	This is a string value. It contains the announce URL
+	of the tracker.
+
+
+</dd>
+<dt>'announce-list':</dt>
+<dd>
+
+	This is an OPTIONAL list of string values. Each value is a URL
+	pointing to a backup tracker. This value is not used in BTP/1.0.
+
+
+</dd>
+<dt>'comment':</dt>
+<dd>
+
+	This is an OPTIONAL string value that may contain any comment by
+	the author of the torrent.
+
+
+</dd>
+<dt>'created by':</dt>
+<dd>
+
+	This is an optional string value and may contain the name and
+	version of the program used to create the metainfo file.
+
+
+</dd>
+<dt>'creation date':</dt>
+<dd>
+
+	This is an OPTIONAL string value. It contains the creation time
+	of the torrent in standard Unix epoch format.
+
+
+</dd>
+<dt>'info':</dt>
+<dd>
+
+	This key points to a dictionary that contains information about
+	the files to download. The entries are explained in the
+	following sections.
+
+
+</dd>
+</dl></blockquote>
+<a name="rfc.section.4.1.1"></a><h4><a name="anchor15">4.1.1</a>&nbsp;Single File Torrents</h4>
+
+<p>
+
+   If the torrent only specifies one file, the info dictionary must
+   have the following keys:
+
+
+</p>
+<blockquote class="text"><dl>
+<dt>'length':</dt>
+<dd>
+
+	This is an integer value indicating the length of the file in
+	bytes.
+
+
+</dd>
+<dt>'md5sum':</dt>
+<dd>
+
+	This is an OPTIONAL value. If included it must be a string of 32
+	characters corresponding to the MD5 sum of the file.  This value
+	is not used in BTP/1.0.
+
+
+</dd>
+<dt>'name':</dt>
+<dd>
+
+	A string containing the name of the file.
+
+
+</dd>
+<dt>'piece length':</dt>
+<dd>
+
+	An integer indicating the number of bytes in each piece.
+
+
+</dd>
+<dt>'pieces':</dt>
+<dd>
+
+	This is a string value containing the concatenation of the 20-byte
+	SHA1 hash value for all pieces in the torrent.  For example, the
+	first 20 bytes of the string represent the SHA1 value used to verify
+	piece index 0.
+
+
+</dd>
+</dl></blockquote>
+<p>
+
+   The complete file is derived by combining all the pieces into one
+   string of bytes.
+
+
+</p>
+<a name="rfc.section.4.1.2"></a><h4><a name="anchor16">4.1.2</a>&nbsp;Multi File Torrents</h4>
+
+<p>
+
+   If the torrent specifies multiple files, the info dictionary must
+   have the following structure:
+
+
+</p>
+<blockquote class="text"><dl>
+<dt>'files':</dt>
+<dd>
+
+	This is a list of dictionaries. Each file in the torrent has a
+	dictionary associated to it having the following structure:
+
+
+<blockquote class="text"><dl>
+<dt>'length':</dt>
+<dd>
+
+	This is an integer indicating the total length of the file in
+	bytes.
+
+
+</dd>
+<dt>'md5sum':</dt>
+<dd>
+
+	This is an OPTIONAL value. if included it must be a string of 32
+	characters corresponding to the MD5 sum of the file. This value
+	is not used in BTP/1.0.
+
+
+</dd>
+<dt>'path':</dt>
+<dd>
+
+	This is a list of string elements that specify the path of the file,
+	relative to the topmost directory. The last element
+	in the list is the name of the file, and the elements preceding
+	it indicate the directory hierarchy in which this file is
+	situated. 
+
+
+</dd>
+</dl></blockquote><p>
+
+</dd>
+<dt>'name':</dt>
+<dd>
+
+	This is a string value. It contains the name of the top-most
+	directory in the file structure.
+
+
+</dd>
+<dt>'piece length':</dt>
+<dd>
+
+	This is an integer value. It contains the number of bytes in
+	each piece.
+
+
+</dd>
+<dt>'pieces':</dt>
+<dd>
+
+	This is a string value. It must contain the concatenation of all
+	20-byte SHA1 hash values that are used by BTP/1.0 to verify each
+	downloaded piece. The first 20 bytes of the string represent the
+	SHA1 value used to verify piece index 0.
+
+
+</dd>
+</dl></blockquote>
+<a name="anchor17"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.5"></a><h3>5.&nbsp;The Tracker HTTP Protocol</h3>
+
+<p>
+
+   The Tracker HTTP Protocol (THP) is a simple mechanism for introducing
+   peers to each other. A tracker is a HTTP service that must be
+   contacted by a peer in order to join a swarm. As such the tracker
+   constitutes the only centralized element in BTP/1.0. A tracker does
+   not by itself provide access to any downloadable data. A tracker relies on
+   peers sending regular requests. It may assume that a peer is dead if it
+   misses a request.
+
+
+</p>
+<a name="rfc.section.5.1"></a><h4><a name="anchor18">5.1</a>&nbsp;Request</h4>
+
+<p>
+
+   To contact the tracker a peer MUST send a standard HTTP GET request using
+   the URL in the "announce" entry of the metainfo file. The GET request must
+   be parametrized as specified in the HTTP protocol. The following parameters
+   must be present in the request:
+
+
+</p>
+<blockquote class="text"><dl>
+<dt>'info_hash':</dt>
+<dd>
+
+	This is a REQUIRED 20-byte SHA1 hash value. In order to obtain
+	this value the peer must calculate the SHA1 of the value of the
+	"info" key in the metainfo file.
+
+
+</dd>
+<dt>'peer_id':</dt>
+<dd>
+
+	This is a REQUIRED string and must contain the 20-byte
+	self-designated ID of the peer.
+
+
+</dd>
+<dt>'port':</dt>
+<dd>
+
+	The port number that the peer is listening to for incoming
+	connections from other peers. BTP/1.0 does not specify a
+	standard port number, nor a  port range to be used. This key is REQUIRED.
+
+
+</dd>
+<dt>'uploaded':</dt>
+<dd>
+
+	This is a base ten integer value. It denotes the total amount of bytes
+	that the peer has uploaded in the swarm since it sent the "started"
+	event to the tracker. This key is REQUIRED.
+
+
+</dd>
+<dt>'downloaded':</dt>
+<dd>
+
+	This is a base ten integer value. It denotes the
+	total amount of bytes that the peer has downloaded in the swarm
+	since it sent the "started" event to the tracker. This key is REQUIRED.
+
+
+</dd>
+<dt>'left':</dt>
+<dd>
+
+	This is a base ten integer value. It denotes the
+	total amount of bytes that the peer needs in this torrent in
+	order to complete its download. This key is REQUIRED.
+
+
+</dd>
+<dt>'ip':</dt>
+<dd>
+
+	This is an OPTIONAL value, and if present should indicate the
+	true, Internet-wide address of the peer, either in dotted quad IPv4
+	format, hexadecimal IPv6 format, or a DNS name.
+
+
+</dd>
+<dt>'numwant':</dt>
+<dd>
+
+	This is an OPTIONAL value. If present, it should indicate the
+	number of peers that the local peer wants to receive from the
+	tracker. If not present, the tracker uses an implementation
+	defined value.
+
+
+</dd>
+<dt>'event':</dt>
+<dd>
+
+	This parameter is OPTIONAL. If not specified, the request is
+	taken to be a regular periodic request. Otherwise, it MUST have one
+	of the three following values:
+
+
+<blockquote class="text"><dl>
+<dt>'started':</dt>
+<dd>
+
+	The first HTTP GET request sent to the tracker MUST have this
+	value in the "event" parameter.
+
+
+</dd>
+<dt>'stopped':</dt>
+<dd>
+
+	This value SHOULD be sent to the tracker when the peer is shutting
+	down gracefully. 
+
+
+</dd>
+<dt>'completed':</dt>
+<dd>
+
+	This value SHOULD be sent to the tracker when the peer completes a
+	download. The peer SHOULD NOT send this value if it started up with
+	the complete torrent.
+
+
+</dd>
+</dl></blockquote><p>
+
+</dd>
+</dl></blockquote>
+<a name="rfc.section.5.2"></a><h4><a name="anchor19">5.2</a>&nbsp;Response</h4>
+
+<p>
+
+   Upon receiving the HTTP GET request, the tracker MUST respond with a
+   document having the "text/plain" MIME type. This document MUST contain a
+   bencoded dictionary with the following keys:
+
+
+</p>
+<blockquote class="text"><dl>
+<dt>'failure reason':</dt>
+<dd>
+
+	This key is OPTIONAL. If present, the dictionary MUST NOT contain any
+	other keys. The peer should interpret this as if the attempt to join
+	the torrent failed. The value is a human readable string containing an
+	error message with the failure reason.
+
+
+</dd>
+<dt>'interval':</dt>
+<dd>
+
+	A peer must send regular HTTP GET requests to the tracker to
+	obtain an updated list of peers and update the tracker of its
+	status. The value of this key indicated the amount of time
+	that a peer should wait between to consecutive regular
+	requests. This key is REQUIRED.
+    
+
+</dd>
+<dt>'complete':</dt>
+<dd>
+
+	This is an integer that indicates the number of seeders. This
+	key is OPTIONAL.
+
+
+</dd>
+<dt>'incomplete':</dt>
+<dd>
+
+	This is an integer that indicates the number of peers downloading
+	the torrent. This key is OPTIONAL.
+
+
+</dd>
+<dt>'peers':</dt>
+<dd>
+
+	This is a bencoded list of dictionaries containing a list of
+	peers that must be contacted in order to download a file. This
+	key is REQUIRED.
+
+	It has the following structure:
+
+
+<blockquote class="text"><dl>
+<dt>'peer id':</dt>
+<dd>
+
+	This is a REQUIRED string value containing the self-designated
+	ID of the peer.
+      
+
+</dd>
+<dt>'ip':</dt>
+<dd>
+
+	This is a REQUIRED string value indicating the IP address of the peer.
+	This may be given as a dotted quad IPv4 format, hexadecimal IPv6 format or DNS name.
+
+
+</dd>
+<dt>'port':</dt>
+<dd>
+
+	This is an integer value. It must contain the self-designated
+	port number of the peer. This key is REQUIRED.
+
+
+</dd>
+</dl></blockquote><p>
+
+</dd>
+</dl></blockquote>
+<a name="anchor20"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6"></a><h3>6.&nbsp;The Peer Wire Protocol</h3>
+
+<p>
+
+   The aim of the PWP, is to facilitate communication between neighboring
+   peers for the purpose of sharing file content.  PWP describes the
+   steps taken by a peer after it has read in a metainfo file and
+   contacted a tracker to gather information about other peers it may
+   communicate with. PWP is layered on top of TCP and handles all its
+   communication using asynchronous messages.
+
+
+</p>
+<a name="rfc.section.6.1"></a><h4><a name="peer-wire-guidelines">6.1</a>&nbsp;Peer Wire Guidelines</h4>
+
+<p>
+
+   PWP does not specify a standard algorithm for selecting elements from
+   a clients neighboring peers with whom to share pieces, although the
+   following guidelines are expected to be observed by any such
+   algorithm:
+
+
+</p>
+<blockquote class="text">
+<p>
+
+	  The algorithm should not be constructed with the goal in mind
+	  to reduce the amount of data uploaded compared to
+	  downloaded. At the very least a peer should upload the same
+	  amount that it has downloaded.
+
+
+</p>
+<p>
+	  
+	  The algorithm should not use a strict tit-for-tat schema when
+	  dealing with remote peers that have just joined the swarm
+	  and thus have no pieces to offer.
+
+
+</p>
+<p>
+
+	  The algorithm should make good use of both download and upload
+	  bandwidth by putting a cap on the number of simultaneous
+	  connection that actively send or receive data. By reducing the
+	  number of active connections, TCP congestion can be avoided.
+
+
+</p>
+<p>
+         The algorithm should pipeline data requests in order so saturate
+         active connections.
+
+</p>
+<p>
+
+	  The algorithm should be able to cooperate with peers that
+	  implement a different algorithm.
+
+
+</p>
+</blockquote>
+<a name="rfc.section.6.2"></a><h4><a name="anchor21">6.2</a>&nbsp;Handshaking</h4>
+
+<p>
+
+   The local peer opens a port on which to listen for incoming
+   connections from remote peers. This port is then reported to the
+   tracker. As BTP/1.0 does not specify any standard port for listening it is
+   the sole responsibility of the implementation to select a port.
+
+
+</p>
+<p> 
+
+   Any remote peer wishing to communicate with the local peer must open
+   a TCP connection to this port and perform a handshake operation. The
+   handshake operation MUST be carried out before any other data is sent
+   from the remote peer. The local peer MUST NOT send any data back to
+   the remote peer before a well constructed handshake has been
+   recognized according to the rules below. If the handshake in any way
+   violates these rules the local peer MUST close the connection with
+   the remote peer.
+
+
+</p>
+<p>
+	&nbsp;
+
+</p>
+<p>
+	&nbsp;
+
+</p>
+<p>
+
+
+   A handshake is a string of bytes with the following structure:
+
+
+</p><pre>
+----------------------------------------------------------------
+| Name Length | Protocol Name | Reserved | Info Hash | Peer ID |
+----------------------------------------------------------------</pre>
+
+<blockquote class="text"><dl>
+<dt>Name Length:</dt>
+<dd>
+
+	The unsigned value of the first byte indicates the length of a
+	character string containing the protocol name. In BTP/1.0 this
+	number is 19.  The local peer knows its own protocol name and
+	hence also the length of it.  If this length is different than
+	the value of this first byte, then the connection MUST be
+	dropped.
+
+
+</dd>
+<dt>Protocol Name:</dt>
+<dd>
+
+	This is a character string which MUST contain the exact name of
+	the protocol in ASCII and have the same length as given in the
+	Name Length field. The protocol name is used to
+	identify to the local peer which version of BTP the remote peer
+	uses. In BTP/1.0 the name is 'BitTorrent protocol'. If this
+	string is different from the local peers own protocol name, then
+	the connection is to be dropped.
+
+
+</dd>
+<dt>Reserved:</dt>
+<dd>
+
+	The next 8 bytes in the string are reserved for future
+	extensions and should be read without interpretation.
+
+
+</dd>
+<dt>Info Hash:</dt>
+<dd>
+
+	The next 20 bytes in the string are to be interpreted as a
+	20-byte SHA1 of the info key  in the metainfo file.
+	Presumably, since both the local and the remote peer contacted
+	the tracker as a result of reading in the same .torrent file,
+	the local peer will recognize the info hash value and will be
+	able to serve the remote peer. If this is not the case, then the
+	connection MUST be dropped. This situation can arise if the
+	local peer decides to no longer serve the file in question for
+	some reason. The info hash may be used to enable the client to
+	serve multiple torrents on the same port.
+
+
+</dd>
+<dt></dt>
+<dd>
+
+	At this stage, if the connection has not been dropped, then the
+	local peer MUST send its own handshake back, which includes the
+	last step:
+
+
+</dd>
+<dt>Peer ID:</dt>
+<dd>
+
+	The last 20 bytes of the handshake are to be interpreted as the
+	self-designated name of the peer.  The local peer must use this
+	name to identify the connection hereafter. Thus, if this name matches
+	the local peers own ID name, the connection MUST be dropped.  Also, if
+	any other peer has already identified itself to the local peer using
+	that same peer  ID, the connection MUST be dropped.
+
+
+</dd>
+</dl></blockquote>
+<p>
+
+   In BTP/1.0 the handshake has a total of 68 bytes.
+
+
+</p>
+<a name="rfc.section.6.3"></a><h4><a name="anchor22">6.3</a>&nbsp;Message Communication</h4>
+
+<p>
+
+   Following the PWP handshake both ends of the TCP channel may send
+   messages to each other in a completely asynchronous fashion. PWP
+   messages have the dual purpose of updating the state of neighboring
+   peers with regard to changes in the local peer, as well as transferring
+   data blocks between neighboring peers. 
+
+
+</p>
+<p>
+
+   PWP Messages fall into two different categories:
+
+
+</p>
+<blockquote class="text"><dl>
+<dt>State-oriented messages:</dt>
+<dd>
+
+	These messages serve the sole purpose of informing peers of changes in
+	the state of neighboring peers. A message of this type MUST be sent
+	whenever a change occurs in a peer's state, regardless of the state of
+	other peers. The following messages fall into this category:
+	Interested, Uninterested, Choked, Unchoked, Have and Bitfield.
+
+
+</dd>
+<dt>Data-oriented messages:</dt>
+<dd>
+
+	These messages handle the requesting and sending of data portions. The
+	following messages fall into this category: Request, Cancel and Piece.
+
+
+</dd>
+</dl></blockquote>
+<a name="rfc.section.6.3.1"></a><h4><a name="anchor23">6.3.1</a>&nbsp;Peer States</h4>
+
+<p>
+
+   For each end of a connection, a peer must maintain the following two state flags:
+
+</p>
+<blockquote class="text"><dl>
+<dt>Choked:</dt>
+<dd>
+
+   When true, this flag means that the choked peer is not allowed to request data.
+
+
+</dd>
+<dt>Interested:</dt>
+<dd>
+
+   When true, this flag means a peer is interested in requesting data from
+   another peer. This indicates that the peer will start requesting blocks
+   if it is unchoked.
+
+
+</dd>
+</dl></blockquote>
+<p>
+   A choked peer MUST not send any data-oriented messages, but is free to send
+   any other message to the peer that has choked it. If a peer chokes a remote
+   peer, it MUST also discard any unanswered requests for blocks
+   previously received from the remote peer.
+
+</p>
+<p>
+  An unchoked peer is allowed to send data-oriented messages to the
+  remote peer. It is left to the implementation how many peers any given peer
+  may choose to choke or unchoke, and in what fashion. This is done deliberately
+  to allow peers to use different heuristics for peer selection.
+
+</p>
+<p>
+  An interested peer indicates to the remote peer that it must expect to
+  receive data-oriented messages as soon as it unchokes the interested peer. It
+  must be noted, that a peer must not assume a remote peer is interested solely
+  because it has pieces that the remote peer is lacking. There may be valid
+  reasons why a peer is not interested in another peer other than data-based
+  ones.
+
+</p>
+<a name="rfc.section.6.3.2"></a><h4><a name="anchor24">6.3.2</a>&nbsp;Peer Wire Messages</h4>
+
+<p>
+
+   All integer members in PWP messages are encoded as a 4-byte big-endian
+   number. Furthermore, all index and offset members in PWP messages are
+   zero-based.
+
+
+</p>
+<p>
+
+   A PWP message has the following structure:
+
+
+</p><pre>
+-----------------------------------------
+| Message Length | Message ID | Payload |
+-----------------------------------------</pre>
+
+<blockquote class="text"><dl>
+<dt>Message Length:</dt>
+<dd>
+
+	This is an integer which denotes the length of the message,
+	excluding the length part itself. If a message has no payload, its size is 1.
+	Messages of size 0 MAY be sent periodically as keep-alive
+	messages. Apart from the limit that the four bytes impose on the
+	message length, BTP does not specify a maximum limit on this
+	value.  Thus an implementation MAY choose to specify a different
+	limit, and for instance disconnect a remote peer that wishes to
+	communicate using a message length that would put too much
+	strain on the local peer's resources. 
+
+
+</dd>
+<dt>Message ID:</dt>
+<dd>
+
+	This is a one byte value, indicating the type of the message.
+	BTP/1.0 specifies 9 different messages, as can be seen further
+	below.
+
+
+</dd>
+<dt>Payload:</dt>
+<dd>
+
+	The payload is a variable length stream of bytes.
+
+
+</dd>
+</dl></blockquote>
+<p>
+
+   If an incoming message in any way violates this structure then the
+   connection SHOULD be dropped.  In particular the receiver SHOULD make
+   sure the message ID constitutes a valid message, and the payload
+   matches the the expected payload, as given below. 
+
+
+</p>
+<p>
+
+   For the purpose of compatibility with future protocol extensions the
+   client SHOULD ignore unknown messages. There may arise situations in
+   which a client may choose to drop a connection after receiving an
+   unknown message, either for security reasons, or because discarding
+   large unknown messages may be viewed as excessive waste.
+
+
+</p>
+<p>
+
+   BTP/1.0 specifies the following messages:
+
+
+</p>
+<a name="rfc.section.6.3.3"></a><h4><a name="anchor25">6.3.3</a>&nbsp;Choke</h4>
+
+<p>
+
+	This message has ID 0 and no payload. A peer sends this message
+	to a remote peer to inform the remote peer that it is being
+	choked. 
+
+</p>
+<a name="rfc.section.6.3.4"></a><h4><a name="anchor26">6.3.4</a>&nbsp;Unchoke</h4>
+
+<p>
+
+	This message has ID 1 and no payload. A peer sends this message
+	to a remote peer to inform the remote peer that it is no longer
+	being choked.
+	   
+
+
+</p>
+<a name="rfc.section.6.3.5"></a><h4><a name="anchor27">6.3.5</a>&nbsp;Interested</h4>
+
+<p>
+
+	This message has ID 2 and no payload. A peer sends this message
+	to a remote peer to inform the remote peer of its desire to
+	request data.
+
+
+
+</p>
+<a name="rfc.section.6.3.6"></a><h4><a name="anchor28">6.3.6</a>&nbsp;Uninterested</h4>
+
+<p>
+
+	This message has ID 3 and no payload. A peer sends this message
+	to a remote peer to inform it that it is not interested in any
+	pieces from the remote peer. 
+
+
+</p>
+<a name="rfc.section.6.3.7"></a><h4><a name="anchor29">6.3.7</a>&nbsp;Have</h4>
+
+<p>
+
+	This message has ID 4 and a payload of length 4. The payload is a
+	number denoting the index of a piece that the peer has successfully
+	downloaded and validated. A peer receiving this message must validate
+	the index and drop the connection if this index is not within the
+	expected bounds. Also, a peer receiving this message MUST send an
+	interested message to the sender if indeed it lacks the piece
+	announced. Further, it MAY also send a request for that piece.
+
+
+
+</p>
+<a name="rfc.section.6.3.8"></a><h4><a name="anchor30">6.3.8</a>&nbsp;Bitfield</h4>
+
+<p>
+
+	This message has ID 5 and a variable payload length. The payload
+	is a bitfield representing the pieces that the sender has
+	successfully downloaded, with the high bit in the first byte
+	corresponding to piece index 0. If a bit is cleared it is to be
+	interpreted as a missing piece.  A peer MUST send this message
+	immediately after the handshake operation, and MAY choose not to
+	send it if it has no pieces at all. This message MUST not be
+	sent at any other time during the communication. 
+
+
+
+</p>
+<a name="rfc.section.6.3.9"></a><h4><a name="anchor31">6.3.9</a>&nbsp;Request</h4>
+
+<p>
+
+	This message has ID 6 and a payload of length 12. The payload is
+	3 integer values indicating a block within a piece that the sender is
+	interested in downloading from the recipient. The recipient MUST
+	only send piece messages to a sender that has already requested
+	it, and only in accordance to the rules given above about the
+	choke and interested states. The payload has the following
+	structure:
+
+</p>
+<pre>
+---------------------------------------------
+| Piece Index | Block Offset | Block Length |
+---------------------------------------------</pre>
+<p>
+
+
+
+</p>
+<a name="rfc.section.6.3.10"></a><h4><a name="anchor32">6.3.10</a>&nbsp;Piece</h4>
+
+<p>
+
+	This message has ID 7 and a variable length payload. The payload
+	holds 2 integers indicating from which piece and with what
+	offset the block data in the 3rd member is derived. Note, the
+	data length is implicit and can be calculated by subtracting 9
+	from the total message length. The payload has the following
+	structure:
+
+</p>
+<pre>
+-------------------------------------------
+| Piece Index | Block Offset | Block Data |
+-------------------------------------------</pre>
+<p>
+
+
+</p>
+<a name="rfc.section.6.3.11"></a><h4><a name="anchor33">6.3.11</a>&nbsp;Cancel</h4>
+
+<p>
+
+	This message has ID 8 and a payload of length 12. The payload is
+	3 integer values indicating a  block within a piece that the sender has requested
+	for, but is no longer interested in. The recipient MUST erase the
+	request information upon receiving this messages. The payload
+	has the following structure:
+
+</p>
+<pre>
+---------------------------------------------
+| Piece Index | Block Offset | Block Length |
+---------------------------------------------</pre>
+<p>
+
+
+
+</p>
+<a name="rfc.section.6.4"></a><h4><a name="anchor34">6.4</a>&nbsp;The End Game</h4>
+
+<p>
+
+   Towards the end of a download session, it may speed up the download
+   to send request messages for the remaining blocks to all the
+   neighboring peers. A client must issue cancel
+   messages to all pending requests sent to neighboring peers as soon
+   as a piece is downloaded successfully. This is referred to as the end game.
+
+
+</p>
+<p>
+
+   A client usually sends requests for blocks in stages; sending
+   requests for newer blocks as replies for earlier requests are
+   received. The client enters the end game, when all remaining blocks have
+   been requested.
+
+
+</p>
+<a name="rfc.section.6.5"></a><h4><a name="anchor35">6.5</a>&nbsp;Piece Selection Strategy</h4>
+
+<p>
+
+   BTP/1.0 does not force a particular order for selecting which pieces
+   to download. However, experience shows that downloading in
+   rarest-first order seems to lessen the wait time for pieces. To find
+   the rarest piece a client must calculate for each piece index the
+   number of times this index is true in the bitfield vectors of all the
+   neighboring peers. The piece with the lowest sum is then selected
+   for requesting.
+
+
+</p>
+<a name="rfc.section.6.6"></a><h4><a name="peer-selection-strategy">6.6</a>&nbsp;Peer Selection Strategy</h4>
+
+<p>
+
+   This section describes the choking algorithm recommended for selecting
+   neighboring peers with whom to exchange pieces.  Implementations are
+   free to implement any strategy as long as the guidelines in Section 
+   6.1 are observed.
+
+</p>
+<p>
+
+   After the initial handshake both ends of a connection set the
+   Choked flag to true and the Interested flag to false.
+
+
+</p>
+<p>
+   All connections are periodically rated in terms of their ability
+   to provide the client with a better download rate.  The rating may take
+   into account factors such as the remote peers willingness to maintain
+   an unchoked connection with the client over a certain period of time,
+   the remote peers upload rate to the client and other implementation
+   defined criteria.   
+
+</p>
+<p>
+ The peers are sorted according to their rating with regard to the
+   above mentioned scheme. Assume only 5 peers are allowed to download at the
+   same time. The peer selection algorithm will now unchoke as many of the
+   best rated peers as necessary so that exactly 5 of these are interested. If
+   one of the top rated peers at a later stage becomes interested, then the
+   peer selection algorithm will choke the the worst unchoked peer. Notice that
+   the worst unchoked peer is always interested.
+
+
+</p>
+<p>
+
+   The only lacking element from the above algorithm is the capability
+   to ensure that new peers can have a fair chance of downloading a
+   piece, even though they would evaluate poorly in the above schema.
+   A simple method is to make sure that a random peer is selected
+   periodically regardless of how it evaluates. Since this process is repeated in a round
+   robin manner, it ensures that ultimately even new peers will have a
+   chance of being unchoked.
+
+
+</p>
+<a name="security-considerations"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.7"></a><h3>7.&nbsp;Security Consideration</h3>
+
+<p>
+
+   
+   This section examines security considerations for BTP/1.0.The
+   discussion does not include definitive solutions to the problems
+   revealed, though it does make some suggestions for reducing
+   security risks.
+
+
+</p>
+<a name="rfc.section.7.1"></a><h4><a name="anchor36">7.1</a>&nbsp;Tracker HTTP Protocol Issues</h4>
+
+<p>
+
+   The use of the HTTP protocol for communication between the tracker
+   and the client makes BTP/1.0 vulnerable to the attacks mentioned in
+   the security consideration section of
+   <a class="info" href="#RFC2616">RFC 2616<span> (</span><span class="info">Fielding, R., Gettys, J., Mogul, J., Frystyk, H., Masinter, L., Leach, P., and T. Berners-Lee, &ldquo;Hypertext Transfer Protocol -- HTTP/1.1,&rdquo; June&nbsp;1999.</span><span>)</span></a>[6].
+
+
+</p>
+<a name="rfc.section.7.2"></a><h4><a name="anchor37">7.2</a>&nbsp;Denial of Service Attacks on Trackers</h4>
+
+<p>
+
+   The nature of the tracker is to serve many clients. By mounting a
+   denial of service attack against the tracker the swarm attached to
+   the tracker can be starved. This type of attack is hard to defend
+   against, however, the metainfo file allows for multiple trackers to
+   be specified, making it possible to spread the load on a number of
+   trackers, and thus containing such an attack. 
+
+
+</p>
+<a name="rfc.section.7.3"></a><h4><a name="anchor38">7.3</a>&nbsp;Peer Identity Issues</h4>
+
+<p>
+
+   There is no strong authentication of clients when they contact the
+   tracker. The main option for trackers is to check peer ID and the
+   IP address of the client. The lack of authentication can be used to
+   mount an attack where a client can shut down another client if the
+   two clients are running on the same host and thus are sharing the
+   same IP address.
+
+   In addition, a rogue peer may masquerade its identity by using multiple
+   peer IDs. Clients should there refrain from taking the peer ID at face
+   value.
+
+
+</p>
+<a name="rfc.section.7.4"></a><h4><a name="anchor39">7.4</a>&nbsp;DNS Spoofing</h4>
+
+<p>
+
+   Clients using BTP/1.0 rely heavily on the Domain Name Service,
+   which can be used for both specifying the URI of the tracker and how
+   to contact a peer.  Clients are thus generally prone to security
+   attacks based on the deliberate mis-association of IP addresses and
+   DNS names. Clients need to be cautious in assuming the continuing
+   validity of an IP address/DNS name association.
+
+
+</p>
+<p>
+
+   In particular, BTP/1.0 clients SHOULD rely on their name resolver
+   for confirmation of an IP number/DNS name association, rather than
+   caching the result of previous host name lookups. If clients cache
+   the results of host name lookups in order to achieve a performance
+   improvement, they MUST observe the TTL information reported by DNS.
+
+
+</p>
+<p>
+
+   If clients do not observe this rule, they could be spoofed when a
+   previously-accessed peers or trackers IP address changes. As network
+   renumbering is expected to become increasingly common according to
+   <a class="info" href="#RFC1900">RFC 1900<span> (</span><span class="info">Carpenter, B. and Y. Rekhter, &ldquo;Renumbering Needs Work,&rdquo; February&nbsp;1996.</span><span>)</span></a>[2], the possibility of this form
+   of attack will grow. Observing this requirement reduces this
+   potential security vulnerability.
+
+
+</p>
+<a name="rfc.section.7.5"></a><h4><a name="anchor40">7.5</a>&nbsp;Issues with File and Directory Names</h4>
+
+<p>
+
+   The metainfo file provides a way to suggest a name of the
+   downloaded file for single-file torrents and the top-most directory
+   for multi-file torrents.  This functionality is very like the
+   Content-Disposition header field documented in
+   <a class="info" href="#RFC2183">RFC 2183<span> (</span><span class="info">Troost, R., Dorner, S., and K. Moore, &ldquo;Communicating Presentation Information in Internet Messages: The Content-Disposition Header Field,&rdquo; August&nbsp;1997.</span><span>)</span></a>[4] and the
+   security considerations mentioned in this RFC also apply to
+   BitTorrent clients. In short, BTP clients SHOULD verify that the
+   suggested file names in the metainfo file do not compromise
+   services on the local system.  Furthermore,  care must be taken for
+   multi-file torrents to validate that individual files are relative
+   to the top-most directory and that the paths do not contain path
+   elements to the parent (that is directory elevators such as ``..''),
+   which can be used to place files outside the top-most directory.
+
+
+</p>
+<p>
+
+   Using UNIX as an example, some hazards would be:
+
+
+</p>
+<ul class="text">
+<li>
+
+	Creating startup files (e.g., ".login").
+
+
+</li>
+<li>
+
+	Creating or overwriting system files (e.g., "/etc/passwd").
+
+
+</li>
+<li>
+
+	Overwriting any existing file.
+
+
+</li>
+<li>
+
+	Placing executable files into any command search path (e.g.,
+	"~/bin/more").
+
+
+</li>
+<li>
+
+	Sending the file to a pipe (e.g., "| sh").
+
+
+</li>
+</ul>
+<p>
+
+   It is very important to note that this is not an exhaustive list; it
+   is intended as a small set of examples only. Implementers must be
+   alert to the potential hazards on their target systems. In general,
+   the BTP client SHOULD NOT name or place files such that they
+   will get interpreted or executed without the user explicitly
+   initiating the action.
+
+
+</p>
+<a name="rfc.section.7.6"></a><h4><a name="anchor41">7.6</a>&nbsp;Validating the Integrity of Data Exchanged Between Peers</h4>
+
+<p>
+
+   By default, all content served to the client from other peers should
+   be considered tainted and the client SHOULD validate the integrity of
+   the data before accepting it. The metainfo file contains information
+   for checking both individual pieces using SHA1, and optionally individual files
+   using MD5. SHA1, being the strongest of the two, is preferred.
+   Furthermore, sole reliance on whole-file checking can potentially
+   render otherwise valid pieces invalid, and should only be considered
+   for small files, to limit the amount of data being discarded.
+
+
+</p>
+<p>
+
+   Trusting the validity of the resulting file or files ends up being a
+   matter of trusting the content of the metainfo file. Ensuring the
+   validity of the metainfo file is beyond the scope of this document.
+
+
+</p>
+<a name="rfc.section.7.7"></a><h4><a name="anchor42">7.7</a>&nbsp;Transfer of Sensitive Information</h4>
+
+<p>
+
+   Some clients include information about themselves when generating
+   the peer ID string. Clients should be aware that this information
+   can potentially be used to determine whether a specific client has
+   a exploitable  security hole.
+
+
+</p>
+<a name="IANA"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.8"></a><h3>8.&nbsp;IANA Considerations</h3>
+
+<p>This document makes no request of IANA.
+</p>
+<a name="rfc.references1"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<h3>9.&nbsp;References</h3>
+<table width="99%" border="0">
+<tr><td class="author-text" valign="top"><a name="RFC0959">[1]</a></td>
+<td class="author-text">Postel, J. and J. Reynolds, &ldquo;<a href="ftp://ftp.isi.edu/in-notes/rfc959.txt">File Transfer Protocol</a>,&rdquo; STD&nbsp;9, RFC&nbsp;959, October&nbsp;1985.</td></tr>
+<tr><td class="author-text" valign="top"><a name="RFC1900">[2]</a></td>
+<td class="author-text"><a href="mailto:brian@dxcoms.cern.ch">Carpenter, B.</a> and <a href="mailto:yakov@cisco.com">Y. Rekhter</a>, &ldquo;<a href="ftp://ftp.isi.edu/in-notes/rfc1900.txt">Renumbering Needs Work</a>,&rdquo; RFC&nbsp;1900, February&nbsp;1996.</td></tr>
+<tr><td class="author-text" valign="top"><a name="RFC2119">[3]</a></td>
+<td class="author-text"><a href="mailto:sob@harvard.edu">Bradner, S.</a>, &ldquo;<a href="ftp://ftp.isi.edu/in-notes/rfc2119.txt">Key words for use in RFCs to Indicate Requirement Levels</a>,&rdquo; BCP&nbsp;14, RFC&nbsp;2119, March&nbsp;1997 (<a href="ftp://ftp.isi.edu/in-notes/rfc2119.txt">TXT</a>, <a href="http://xml.resource.org/public/rfc/html/rfc2119.html">HTML</a>, <a href="http://xml.resource.org/public/rfc/xml/rfc2119.xml">XML</a>).</td></tr>
+<tr><td class="author-text" valign="top"><a name="RFC2183">[4]</a></td>
+<td class="author-text"><a href="mailto:rens@century.com">Troost, R.</a>, <a href="mailto:sdorner@qualcomm.com">Dorner, S.</a>, and <a href="mailto:moore@cs.utk.edu">K. Moore</a>, &ldquo;<a href="ftp://ftp.isi.edu/in-notes/rfc2183.txt">Communicating Presentation Information in Internet Messages: The Content-Disposition Header Field</a>,&rdquo; RFC&nbsp;2183, August&nbsp;1997 (<a href="ftp://ftp.isi.edu/in-notes/rfc2183.txt">TXT</a>, <a href="http://xml.resource.org/public/rfc/html/rfc2183.html">HTML</a>, <a href="http://xml.resource.org/public/rfc/xml/rfc2183.xml">XML</a>).</td></tr>
+<tr><td class="author-text" valign="top"><a name="RFC2234">[5]</a></td>
+<td class="author-text"><a href="mailto:dcrocker@imc.org">Crocker, D., Ed.</a> and <a href="mailto:paulo@turnpike.com">P. Overell</a>, &ldquo;<a href="ftp://ftp.isi.edu/in-notes/rfc2234.txt">Augmented BNF for Syntax Specifications: ABNF</a>,&rdquo; RFC&nbsp;2234, November&nbsp;1997 (<a href="ftp://ftp.isi.edu/in-notes/rfc2234.txt">TXT</a>, <a href="http://xml.resource.org/public/rfc/html/rfc2234.html">HTML</a>, <a href="http://xml.resource.org/public/rfc/xml/rfc2234.xml">XML</a>).</td></tr>
+<tr><td class="author-text" valign="top"><a name="RFC2616">[6]</a></td>
+<td class="author-text"><a href="mailto:fielding@ics.uci.edu">Fielding, R.</a>, <a href="mailto:jg@w3.org">Gettys, J.</a>, <a href="mailto:mogul@wrl.dec.com">Mogul, J.</a>, <a href="mailto:frystyk@w3.org">Frystyk, H.</a>, <a href="mailto:masinter@parc.xerox.com">Masinter, L.</a>, <a href="mailto:paulle@microsoft.com">Leach, P.</a>, and <a href="mailto:timbl@w3.org">T. Berners-Lee</a>, &ldquo;<a href="ftp://ftp.isi.edu/in-notes/rfc2616.txt">Hypertext Transfer Protocol -- HTTP/1.1</a>,&rdquo; RFC&nbsp;2616, June&nbsp;1999 (<a href="ftp://ftp.isi.edu/in-notes/rfc2616.txt">TXT</a>, <a href="ftp://ftp.isi.edu/in-notes/rfc2616.ps">PS</a>, <a href="ftp://ftp.isi.edu/in-notes/rfc2616.pdf">PDF</a>, <a href="http://xml.resource.org/public/rfc/html/rfc2616.html">HTML</a>, <a href="http://xml.resource.org/public/rfc/xml/rfc2616.xml">XML</a>).</td></tr>
+</table>
+
+<a name="rfc.authors"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<h3>Authors' Addresses</h3>
+<table width="99%" border="0" cellpadding="0" cellspacing="0">
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">Jonas Fonseca</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">DIKU</td></tr>
+<tr><td class="author" align="right">Email:&nbsp;</td>
+<td class="author-text"><a href="mailto:fonseca@diku.dk">fonseca@diku.dk</a></td></tr>
+<tr cellpadding="3"><td>&nbsp;</td><td>&nbsp;</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">Basim Reza</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">DIKU</td></tr>
+<tr><td class="author" align="right">Email:&nbsp;</td>
+<td class="author-text"><a href="mailto:basim@diku.dk">basim@diku.dk</a></td></tr>
+<tr cellpadding="3"><td>&nbsp;</td><td>&nbsp;</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">Lilja Fjeldsted</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">DIKU</td></tr>
+<tr><td class="author" align="right">Email:&nbsp;</td>
+<td class="author-text"><a href="mailto:lilja@diku.dk">lilja@diku.dk</a></td></tr>
+</table>
+</body></html>
