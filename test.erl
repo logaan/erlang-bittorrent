@@ -3,7 +3,7 @@
 main(_) ->
   make:files([bittorrent,multibyte]),
   % GPL 3.0
-  _Pid = bittorrent:start_peer(self(), 'localhost', 51413, <<10, 95, 101, 190, 89, 72, 197, 106, 133, 8, 130, 209, 137, 208, 62, 17, 221, 73, 18, 249>>),
+  _Pid = bittorrent:start_peer(self(), 'localhost', 51413, <<157, 149, 198, 12, 174, 192, 204, 147, 208, 94, 100, 68, 57, 70, 142, 103, 45, 195, 184, 120>>),
 
   receive {socket, Socket} -> ok end,
   bittorrent:send_bitfield(Socket, [2]),
