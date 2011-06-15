@@ -26,6 +26,7 @@ loop(Socket) ->
   after 6000 -> ok
   end,
   bittorrent:send_unchoke(Socket),
+  bittorrent:send_have(Socket, 0),
 
   receive
     {received_requst, PieceIndex, BlockOffset, BlockLength} ->

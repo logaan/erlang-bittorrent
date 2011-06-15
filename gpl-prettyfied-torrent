@@ -13,17 +13,21 @@ d
 
   4:info
   d
+    // length of the whole file in bytes
     6:length
     i35147e
     
     4:name
     7:gpl.txt
     
+    // length of a piece in bytes
     12:piece length
     i32768e
-    
+
+    // 20 byte SHA1 hashes for each piece
     6:pieces
-    40:N@ˆ˜ã™Şšmıê¢Íô’Mç„ã„J·¢ÿâW˜ã¯úÊ{1
+    40:N@ˆ˜ã™Şšmıê¢Íô’Mç„
+       ã„J·¢ÿâW˜ã¯úÊ{1
 
     7:private
     i0e
