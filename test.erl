@@ -1,9 +1,17 @@
 #!/usr/bin/env escript
 
+read_info_hash(FileName) ->
+  {ok, FileContents} = file:read_file(FileName),
+  {{dict, MetaInfoDict}, _Remainder} = bencode:decode(FileContents),
+  Info = dict:fetch(<<"info">>, MetaInfoDict),
+  BencodedInfo = binary_to_list(bencode:encode(Info)),
+  sha1:binstring(BencodedInfo).
+
 main(_) ->
-  make:files([bittorrent,multibyte]),
+  make:files([bittorrent,multibyte, bencode, sha1]),
+  InfoHash = read_info_hash("gpl.txt.torrent"),
   % GPL 3.0
-  _Pid = bittorrent:start_peer(self(), 'localhost', 51413, <<157, 149, 198, 12, 174, 192, 204, 147, 208, 94, 100, 68, 57, 70, 142, 103, 45, 195, 184, 120>>),
+  _Pid = bittorrent:start_peer(self(), 'localhost', 51413, InfoHash),
 
   receive {socket, Socket} -> ok end,
   bittorrent:send_bitfield(Socket, [2]),
