@@ -193,7 +193,11 @@ send_request(Socket, PieceIndex, BlockOffset, BlockLength) ->
 % 7. Piece
 % Piece index in 4, Block Offset is 4, Block data is length(), ID is 1
 send_piece(Socket, PieceIndex, BlockOffset, BlockData) ->
-  io:format("Sending piece ~p~n", [PieceIndex]),
+  io:format("Sending from ~p to ~p of piece ~p~n",
+    [multibyte:binary_to_multibyte_integer(BlockOffset),
+     length(BlockData),
+     multibyte:binary_to_multibyte_integer(PieceIndex)]),
+  io:format("BlockData:~p~n", [BlockData]),
   Payload = list_to_binary([
     multibyte:number_to_multibyte_integer(length(BlockData) + 9,4),
     7, PieceIndex, BlockOffset, BlockData

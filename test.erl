@@ -1,5 +1,10 @@
 #!/usr/bin/env escript
 
+% Looks like currently it's not taking the piece number into account when
+% calculating the offset of the data to send. Need to multiply the Piece Index
+% by Piece Length and then add Offset. Which will mean we need to pull Piece
+% Length out of the meta info file.
+
 read_info_hash(FileName) ->
   {ok, FileContents} = file:read_file(FileName),
   {{dict, MetaInfoDict}, _Remainder} = bencode:decode(FileContents),
@@ -15,36 +20,28 @@ main(_) ->
 
   receive {socket, Socket} -> ok end,
   bittorrent:send_bitfield(Socket, [2]),
+  bittorrent:send_have(Socket, 0),
   bittorrent:send_have(Socket, 1),
-
-  % Not sure what this was here for. Perhaps to manually nudge the
-  % process along?
-  % receive received_bitfield -> ok end,
-  bittorrent:send_choke(Socket),
 
   loop(Socket).
 
 
 loop(Socket) ->
-  receive
-    interested -> erlang:display("woot interested");
-    Anything ->
-      erlang:display("AnythingAgain"),
-      erlang:display(Anything)
-  after 6000 -> ok
-  end,
+  bittorrent:send_choke(Socket),
   bittorrent:send_unchoke(Socket),
-  bittorrent:send_have(Socket, 0),
-
   receive
+    interested ->
+      erlang:display("woot interested");
     {received_requst, PieceIndex, BlockOffset, BlockLength} ->
-      send_any_piece(Socket, PieceIndex, BlockOffset, BlockLength),
-      bittorrent:send_choke(Socket);
+      send_any_piece(Socket, PieceIndex, BlockOffset, BlockLength);
+    received_bitfield ->
+      erlang:display("Sent bitfield. Test probs won't work.");
     AnythingAgain ->
       erlang:display("AnythingAgain"),
       erlang:display(AnythingAgain)
+    after 6000 -> ok
   end,
-  
+
   loop(Socket).
 
 send_any_piece(Socket, PieceIndex, BlockOffset, BlockLength) ->
