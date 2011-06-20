@@ -45,7 +45,9 @@ loop(Socket) ->
   loop(Socket).
 
 send_any_piece(Socket, PieceIndex, BlockOffset, BlockLength) ->
-  IntegerBlockOffset = multibyte:binary_to_multibyte_integer(BlockOffset),
+  % 32768 is the piece length of this particular torrent file
+  IntegerBlockOffset = multibyte:binary_to_multibyte_integer(BlockOffset) +
+                       multibyte:binary_to_multibyte_integer(PieceIndex) * 32768,
   IntegerBlockLength = multibyte:binary_to_multibyte_integer(BlockLength),
   {ok, File} = file:open("gpl.txt", [read]),
   {ok, Data} = file:pread(File, IntegerBlockOffset, IntegerBlockLength),
