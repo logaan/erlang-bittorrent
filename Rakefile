@@ -1,9 +1,9 @@
 # This rakefile provides me with tools for adding and removing the torrent from
 # Transmission, the bittorrent client that I use for testing my client against.
 # It has a web interface on OSX and by grabbing a session id and then making
-# remote procedure calls we can control Transmission. On linux there is a utility
-# called transmission-remote that does this in what I would imagine is a much
-# neater way.
+# remote procedure calls we can control Transmission. On linux there is a
+# utility called transmission-remote that does this in what I would imagine is
+# a much neater way.
 
 require "rest_client"
 require "json"
@@ -64,6 +64,9 @@ end
 task :get_session do
   begin
     RestClient.get(RPC_URL)
+  rescue Errno::ECONNREFUSED
+    puts "Transmission is not open"
+    exit
   rescue => e
     @session_id = e.response.match(/X-Transmission-Session-Id: ([^<]+)/)[1]
   end
