@@ -21,8 +21,7 @@ loop(MetaInfo, Socket) ->
     interested ->
       erlang:display("woot interested");
     {received_requst, PieceIndex, BlockOffset, BlockLength} ->
-      PieceLength = meta_info:piece_length(MetaInfo),
-      send_any_piece(Socket, PieceIndex, BlockOffset, BlockLength, PieceLength);
+      send_any_piece(Socket, PieceIndex, BlockOffset, BlockLength, MetaInfo);
     received_bitfield ->
       erlang:display("Sent bitfield. Test probs won't work.");
     AnythingAgain ->
@@ -33,11 +32,16 @@ loop(MetaInfo, Socket) ->
 
   loop(MetaInfo, Socket).
 
-send_any_piece(Socket, PieceIndex, BlockOffset, BlockLength, PieceLength) ->
+send_any_piece(Socket, PieceIndex, BlockOffset, BlockLength, MetaInfo) ->
+  erlang:display("got her"),
+  PieceLength = meta_info:piece_length(MetaInfo),
+  FileName = meta_info:filename(MetaInfo),
+  erlang:display(FileName),
+
   IntegerBlockOffset = multibyte:binary_to_multibyte_integer(BlockOffset) +
                        multibyte:binary_to_multibyte_integer(PieceIndex) * PieceLength,
   IntegerBlockLength = multibyte:binary_to_multibyte_integer(BlockLength),
-  {ok, File} = file:open("gpl.txt", [read]),
+  {ok, File} = file:open(FileName, [read]),
   {ok, Data} = file:pread(File, IntegerBlockOffset, IntegerBlockLength),
   ok = file:close(File),
   bittorrent:send_piece(Socket, PieceIndex, BlockOffset, Data).
