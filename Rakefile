@@ -29,6 +29,8 @@ task :add => [:get_session] do
 end
 
 task :remove => [:get_session] do
+  FileUtils.rm("/Users/logaan/Desktop/gpl.txt")
+
   list= JSON.parse(
     RestClient.post(
       RPC_URL,
