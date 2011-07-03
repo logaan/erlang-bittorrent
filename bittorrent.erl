@@ -14,6 +14,7 @@ start_loop(Host, Port, InfoHash) ->
   io:format("Starting loop for ~p~n", [InfoHash]),
   {ok, Socket} = gen_tcp:connect(Host, Port, [binary, {active, true}]),
   {ok, _PeerID} = handshake(Socket, InfoHash),
+  inet:setopts(Socket, [{packet, 4}]),
   master ! {socket, Socket},
   loop(Socket).
 
@@ -24,14 +25,14 @@ loop(Socket) ->
   receive
 
     % Keepalive
-    {tcp,Socket,<<0,0,0,0,0,0,0,0>>} ->
+    {tcp,Socket,<<0,0,0,0>>} ->
       io:format("Got a keepalive~n"),
       send_keepalive(Socket),
       bittorrent:loop(Socket);
 
     % Peer wire message
-    {tcp,Socket,<<MessageLength:4/binary, MessageID/integer, Tail/binary>>} ->
-      handle_message(list_to_binary([MessageLength, MessageID, Tail])),
+    {tcp,Socket,Message} ->
+      handle_message(Message),
       bittorrent:loop(Socket);
 
     % Closed connection
@@ -73,63 +74,53 @@ handshake(Socket, InfoHash) ->
 % RECEIVING MESSAGES
 %
 
-% Each message has it's own method. Any data tacked onto the end of a message is
-% passed back into this method until there is no more data, which returns ok.
 handle_message(<<>>) ->
   ok;
 
 % 0. Choke
-handle_message(<<0,0,0,1,0,Tail/binary>>) ->
-  io:format("You are choked~n"),
-  handle_message(Tail);
+handle_message(<<0>>) ->
+  io:format("You are choked~n");
 
 % 1. Unchoke
-handle_message(<<0,0,0,1,1,Tail/binary>>) ->
-  io:format("You are unchoked~n"),
-  handle_message(Tail);
+handle_message(<<1>>) ->
+  master ! unchoked,
+  io:format("You are unchoked~n");
 
 % 2. Interested
-handle_message(<<0,0,0,1,2,Tail/binary>>) ->
-  io:format("The peer is interested~n"),
-  handle_message(Tail);
+handle_message(<<2>>) ->
+  io:format("The peer is interested~n");
 
 % 3. Uninterested
-handle_message(<<0,0,0,1,3,Tail/binary>>) ->
-  io:format("The peer is uninterested~n"),
-  handle_message(Tail);
+handle_message(<<3>>) ->
+  io:format("The peer is uninterested~n");
 
 % 4. Have
-handle_message(<<0,0,0,5,4,Payload:4/binary, Tail/binary>>) ->
+handle_message(<<4,Payload:4/binary>>) ->
   PieceNumber = multibyte:binary_to_multibyte_integer(Payload),
-  io:format("The peer has piece ~p~n", [PieceNumber]),
-  handle_message(Tail);
+  io:format("The peer has piece ~p~n", [PieceNumber]);
 
 % 5. Bitfield
-handle_message(<<MessageLength:4/binary,5,Tail/binary>>) ->
-  Length  = multibyte:binary_to_multibyte_integer(MessageLength) - 1,
-  <<Payload:Length/binary, UnusedTail/binary>> = Tail,
+handle_message(<<5,Payload/binary>>) ->
   master ! received_bitfield,
-  io:format("Received bitfield of length ~p with payload ~p~n", [Length, Payload]),
-  handle_message(UnusedTail);
+  io:format("Received bitfield with payload ~p~n", [Payload]),
+  handle_message(<<>>);
 
 % 6. Request
-handle_message(<<0,0,0,13,6,PieceIndex:4/binary,BlockOffset:4/binary,BlockLength:4/binary,Tail/binary>>) ->
+handle_message(<<6,PieceIndex:4/binary,BlockOffset:4/binary,BlockLength:4/binary>>) ->
   io:format("Received request for ~p bytes ~p bytes into piece ~p~n", [
       multibyte:binary_to_multibyte_integer(BlockLength),
       multibyte:binary_to_multibyte_integer(BlockOffset),
       multibyte:binary_to_multibyte_integer(PieceIndex)
   ]),
-  master ! {received_requst, PieceIndex, BlockOffset, BlockLength},
-  handle_message(Tail);
+  master ! {received_requst, PieceIndex, BlockOffset, BlockLength};
 
 % 8. Cancel
-handle_message(<<0,0,0,13,8,PieceIndex:4/binary,BlockOffset:4/binary,BlockLength:4/binary,Tail/binary>>) ->
+handle_message(<<8,PieceIndex:4/binary,BlockOffset:4/binary,BlockLength:4/binary>>) ->
   io:format("Had request cancelled for ~p bytes ~p bytes into piece ~p~n", [
       multibyte:binary_to_multibyte_integer(BlockLength),
       multibyte:binary_to_multibyte_integer(BlockOffset),
       multibyte:binary_to_multibyte_integer(PieceIndex)
-  ]),
-  handle_message(Tail);
+  ]);
 
 % Other
 handle_message(Other) ->
@@ -142,49 +133,44 @@ handle_message(Other) ->
 % Sends a message to keep the connection open.
 send_keepalive(Socket) ->
   io:format("Sending keepalive~n"),
-  gen_tcp:send(Socket, <<0,0,0,0,0,0,0,0>>).
+  gen_tcp:send(Socket, <<0,0,0,0>>).
 
 % 0. Choke
 send_choke(Socket) ->
   io:format("Sending Choke~n"),
-  gen_tcp:send(Socket, <<0,0,0,1,0>>).
+  gen_tcp:send(Socket, <<0>>).
 
 % 1. Unchoke
 send_unchoke(Socket) ->
   io:format("Sending unchoke~n"),
-  gen_tcp:send(Socket, <<0,0,0,1,1>>).
+  gen_tcp:send(Socket, <<1>>).
 
 % 2. Interested
 send_interested(Socket) ->
   io:format("Sending interested~n"),
-  gen_tcp:send(Socket, <<0,0,0,1,2>>).
+  gen_tcp:send(Socket, <<2>>).
 
 % 3. Uninterested
 send_uninterested(Socket) ->
   io:format("Sending uninterested~n"),
-  gen_tcp:send(Socket, <<0,0,0,1,3>>).
+  gen_tcp:send(Socket, <<3>>).
 
 % 4. Have
 send_have(Socket, PieceIndex) ->
   MultiByteIndex = multibyte:number_to_multibyte_integer(PieceIndex, 4),
   io:format("Sending have ~p~n", [MultiByteIndex]),
-  gen_tcp:send(Socket, list_to_binary([0,0,0,5,4,MultiByteIndex ])).
+  gen_tcp:send(Socket, list_to_binary([4,MultiByteIndex ])).
 
 % 5. Bittfield
 send_bitfield(Socket, Bitfield) ->
   io:format("Sending bittfield of ~p~n", [Bitfield]),
-  BitfieldLength = length(erlang:binary_to_list(Bitfield)),
-  Payload = list_to_binary([
-    multibyte:number_to_multibyte_integer(BitfieldLength + 1,4),
-    5,
-    Bitfield
-  ]),
+  Payload = list_to_binary([ 5, Bitfield ]),
   gen_tcp:send(Socket, Payload).
 
 % 6. Request
 send_request(Socket, PieceIndex, BlockOffset, BlockLength) ->
   io:format("Sending request for ~p~n", [PieceIndex]),
-  gen_tcp:send(Socket, <<0,0,0,13,6,PieceIndex,BlockOffset,BlockLength>>).
+  gen_tcp:send(Socket, <<6,PieceIndex,BlockOffset,BlockLength>>).
 
 % 7. Piece
 % Piece index in 4, Block Offset is 4, Block data is length(), ID is 1
@@ -193,10 +179,6 @@ send_piece(Socket, PieceIndex, BlockOffset, BlockData) ->
     [multibyte:binary_to_multibyte_integer(BlockOffset),
      length(BlockData),
      multibyte:binary_to_multibyte_integer(PieceIndex)]),
-  Payload = list_to_binary([
-    multibyte:number_to_multibyte_integer(length(BlockData) + 9,4),
-    7, PieceIndex, BlockOffset, BlockData
-  ]),
-  % io:format("Payload: ~p~n", [Payload]),
+  Payload = list_to_binary([7, PieceIndex, BlockOffset, BlockData]),
   gen_tcp:send(Socket, Payload).
 

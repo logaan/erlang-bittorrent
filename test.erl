@@ -8,6 +8,11 @@ main(_) ->
 
   receive {socket, Socket} -> ok end,
 
+  receive
+    unchoked -> ok
+    after 5000 -> ok
+  end,
+
   bittorrent:send_bitfield(Socket, meta_info:bitfield(MetaInfo)),
 
   % Need to send some haves to start getting requests
