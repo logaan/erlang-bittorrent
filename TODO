@@ -1,8 +1,6 @@
 TODO
-- Send a piece
-  - Write the send call write into the request function
-  - Eventually have a sender process that takes requests in it's mailbox
-    and just loops through them sending them out
-- Implement piece message
-  - Piece index and block offset come straight from the request
-  - I guess the block data comes from reading the file?
+- It looks like sometimes the messages will come through split across multiple
+  messages. Kinda like how sometimes there are multiple messages all in one. So
+  I guess this means the packet receiving shit is going to have to change.
+- Eventually have a sender process that takes requests in it's mailbox
+  and just loops through them sending them out. Maybe.
