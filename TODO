@@ -1,5 +1,5 @@
 BUGS
-- Doesn't look like the correct bitfield is being created for "Hack the Planet.png"
+- Large transfer doesn't finish. Possibly endgame thing. Need to send haves to tie it off.
 TODO
 - Need to keep track of the incoming have messages
 - Eventually have a sender process that takes requests in it's mailbox
