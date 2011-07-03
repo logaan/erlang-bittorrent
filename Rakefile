@@ -12,7 +12,7 @@ require "json"
 FILE_NAME = "Hack the Planet.png"
 
 
-TORRENT_PATH = FILE_NAME + ".torrent"
+TORRENT_PATH = "data/" + FILE_NAME + ".torrent"
 DOWNLOAD_DIRECTORY = "/Users/logaan/Desktop/"
 DOWNLOAD_PATH = DOWNLOAD_DIRECTORY + FILE_NAME
 
@@ -23,9 +23,11 @@ UPLOAD_URL = BASE_URL + "upload"
 
 task :default => [:test]
 
-task :test => [:remove, :add, :compile] do
+task :test => [:cycle, :compile] do
   system("./test.erl")
 end
+
+task :cycle => [:remove, :add]
 
 task :add => [:get_session] do
   add = JSON.parse(
