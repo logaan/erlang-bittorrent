@@ -22,15 +22,16 @@ main(_) ->
 loop(MetaInfo, Socket) ->
   receive
     {received_requst, PieceIndex, BlockOffset, BlockLength} ->
-      send_any_piece(Socket, PieceIndex, BlockOffset, BlockLength, MetaInfo);
+      send_any_piece(Socket, PieceIndex, BlockOffset, BlockLength, MetaInfo),
+      loop(MetaInfo, Socket);
+    closed ->
+      ok;
     received_bitfield ->
-      erlang:display("Sent bitfield. Test probs won't work.");
-    AnythingAgain ->
-      erlang:display("AnythingAgain"),
-      erlang:display(AnythingAgain)
-  end,
-
-  loop(MetaInfo, Socket).
+      io:format("Transmission already has the complete torrent.");
+    Unknown ->
+      io:format("Received unknown message:"),
+      erlang:display(Unknown)
+  end.
 
 send_any_piece(Socket, PieceIndex, BlockOffset, BlockLength, MetaInfo) ->
   PieceLength = meta_info:piece_length(MetaInfo),

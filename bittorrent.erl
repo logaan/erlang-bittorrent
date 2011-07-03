@@ -36,12 +36,8 @@ loop(Socket) ->
 
     % Closed connection
     {tcp_closed,Socket} ->
+      master ! closed,
       io:format("Connection was closed~n");
-
-    % Socket request
-    {socket,Sender} ->
-      Sender ! Socket,
-      bittorrent:loop(Socket);
 
     % Unknown message
     Unknown ->
