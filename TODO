@@ -1,7 +1,6 @@
+BUGS
+- Doesn't look like the correct bitfield is being created for "Hack the Planet.png"
 TODO
-- Looks like the problem now is that we're reaching the end game and transmission won't ask for
-  pieces just based on bitfield any more.
-  - Need to keep track of the incoming have messages
-  - At the end start sending have messages to finish them up
+- Need to keep track of the incoming have messages
 - Eventually have a sender process that takes requests in it's mailbox
   and just loops through them sending them out. Maybe.
