@@ -173,8 +173,9 @@ send_have(Socket, PieceIndex) ->
 % 5. Bittfield
 send_bitfield(Socket, Bitfield) ->
   io:format("Sending bittfield of ~p~n", [Bitfield]),
+  BitfieldLength = length(erlang:binary_to_list(Bitfield)),
   Payload = list_to_binary([
-    multibyte:number_to_multibyte_integer(length(Bitfield) + 1,4),
+    multibyte:number_to_multibyte_integer(BitfieldLength + 1,4),
     5,
     Bitfield
   ]),
