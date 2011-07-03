@@ -23,7 +23,7 @@ UPLOAD_URL = BASE_URL + "upload"
 
 task :default => [:test]
 
-task :test => [:remove, :add] do
+task :test => [:remove, :add, :compile] do
   system("./test.erl")
 end
 
@@ -86,3 +86,8 @@ task :get_session do
   end
 end
 
+task :compile do
+  Dir["src/*"].each do |source_file|
+    system("erlc -o ebin #{source_file}")
+  end
+end

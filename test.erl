@@ -1,7 +1,7 @@
 #!/usr/bin/env escript
 
 main(_) ->
-  make:files([bittorrent,multibyte, bencode, sha1, meta_info]),
+  code:add_path("ebin"),
   % MetaInfo = meta_info:read_file("gpl.txt.torrent"),
   MetaInfo = meta_info:read_file("Hack the Planet.png.torrent"),
   InfoHash = meta_info:info_hash(MetaInfo),

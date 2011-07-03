@@ -1,8 +1,0 @@
-#!/usr/bin/env ruby
-
-def hexdigest_to_digest(h)
-  h.unpack('a2'*(h.size/2)).collect {|i| i.hex }
-end
-
-puts hexdigest_to_digest(ARGV.first).inspect
-
