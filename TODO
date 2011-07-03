@@ -1,6 +1,7 @@
 TODO
-- It looks like sometimes the messages will come through split across multiple
-  messages. Kinda like how sometimes there are multiple messages all in one. So
-  I guess this means the packet receiving shit is going to have to change.
+- Looks like the problem now is that we're reaching the end game and transmission won't ask for
+  pieces just based on bitfield any more.
+  - Need to keep track of the incoming have messages
+  - At the end start sending have messages to finish them up
 - Eventually have a sender process that takes requests in it's mailbox
   and just loops through them sending them out. Maybe.
