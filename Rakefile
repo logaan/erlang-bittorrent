@@ -11,9 +11,13 @@ require "json"
 BASE_URL   = "localhost:9091/transmission/"
 RPC_URL    = BASE_URL + "rpc"
 UPLOAD_URL = BASE_URL + "upload"
+GPL_PATH = "/Users/logaan/Desktop/gpl.txt"
 
-task :default => [:cycle]
-task :cycle => [:remove, :add]
+task :default => [:test]
+
+task :test => [:remove, :add] do
+  system("./test.erl")
+end
 
 task :add => [:get_session] do
   add = JSON.parse(
@@ -29,7 +33,7 @@ task :add => [:get_session] do
 end
 
 task :remove => [:get_session] do
-  FileUtils.rm("/Users/logaan/Desktop/gpl.txt")
+  FileUtils.rm(GPL_PATH) if File.exists?(GPL_PATH)
 
   list= JSON.parse(
     RestClient.post(

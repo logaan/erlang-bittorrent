@@ -95,7 +95,6 @@ handle_message(<<0,0,0,1,1,Tail/binary>>) ->
 % 2. Interested
 handle_message(<<0,0,0,1,2,Tail/binary>>) ->
   io:format("The peer is interested~n"),
-  master ! interested,
   handle_message(Tail);
 
 % 3. Uninterested
@@ -197,7 +196,6 @@ send_piece(Socket, PieceIndex, BlockOffset, BlockData) ->
     [multibyte:binary_to_multibyte_integer(BlockOffset),
      length(BlockData),
      multibyte:binary_to_multibyte_integer(PieceIndex)]),
-  io:format("BlockData:~p~n", [BlockData]),
   Payload = list_to_binary([
     multibyte:number_to_multibyte_integer(length(BlockData) + 9,4),
     7, PieceIndex, BlockOffset, BlockData
