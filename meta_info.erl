@@ -42,7 +42,6 @@ lookup_info_field(Name, MetaInfo) ->
 create_bitfield_binary(0) ->
   <<>>;
 create_bitfield_binary(NumberOfPieces) ->
-  erlang:display(NumberOfPieces),
   % Here be dragons. By doing NumberOfPieces rem 8 we get the number of bits
   % that won't be fitting nicely into a byte. So they need to be padded out
   % with leading 0s. To find out how many padding zeros we need we subtract

@@ -2,16 +2,17 @@
 
 main(_) ->
   make:files([bittorrent,multibyte, bencode, sha1, meta_info]),
-  MetaInfo = meta_info:read_file("Hack the Planet.png.torrent"),
+  MetaInfo = meta_info:read_file("gpl.txt.torrent"),
+  % MetaInfo = meta_info:read_file("Hack the Planet.png.torrent"),
   InfoHash = meta_info:info_hash(MetaInfo),
   _Pid = bittorrent:start_peer(self(), 'localhost', 51413, InfoHash),
 
   receive {socket, Socket} -> ok end,
 
-  receive
-    unchoked -> ok
-    after 5000 -> ok
-  end,
+  % receive
+  %   unchoked -> ok
+  %   after 5000 -> ok
+  % end,
 
   bittorrent:send_bitfield(Socket, meta_info:bitfield(MetaInfo)),
 
