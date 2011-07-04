@@ -1,14 +1,24 @@
 #!/usr/bin/env escript
 
 main(_) ->
-  Controller = self(),
-  Pid = spawn_link(fun() -> need_server(Controller, 10) end),
-  process_flag(trap_exit, true),
-  Pid ! {set_status, 7, received},
+  Pid = start_need_server(10),
+  set_received(Pid, 7),
   timer:sleep(2000),
-  Pid ! done,
+  stop_need_server(Pid),
   regurgitate().
 
+% API
+start_need_server(NumberOfPieces) ->
+  Controller = self(),
+  spawn_link(fun() -> need_server(Controller, NumberOfPieces) end).
+
+stop_need_server(Pid) ->
+  Pid ! stop.
+
+set_received(Pid, PieceIndex) ->
+  Pid ! {set_status, PieceIndex, received}.
+
+% Server
 need_server(Controller, NumberOfPieces) ->
   Needs = ets:new(needs, []),
   populate(Needs, NumberOfPieces),
@@ -20,7 +30,7 @@ loop(Controller, Needs) ->
       io:format("Piece ~p ~p~n", [PieceIndex, Status]),
       ets:update_element(Needs, PieceIndex, {2, Status}),
       loop(Controller, Needs);
-    done ->
+    stop ->
       exit(normal);
     Unknown ->
       error_logger:error_msg(Unknown)
@@ -41,6 +51,7 @@ populate(Needs, NumberOfPieces) ->
   ets:insert(Needs, {NumberOfPieces, available}),
   populate(Needs, NumberOfPieces - 1).
 
+% Utilities
 regurgitate() ->
   receive
     Anything ->
