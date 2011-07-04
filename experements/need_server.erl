@@ -18,6 +18,15 @@ stop_need_server(Pid) ->
 set_received(Pid, PieceIndex) ->
   Pid ! {set_status, PieceIndex, received}.
 
+set_offered(Pid, PieceIndex) ->
+  Pid ! {set_status, PieceIndex, offered}.
+
+set_requested(Pid, PieceIndex) ->
+  Pid ! {set_status, PieceIndex, requested}.
+
+set_sent(Pid, PieceIndex) ->
+  Pid ! {set_status, PieceIndex, sent}.
+
 % Server
 need_server(Controller, NumberOfPieces) ->
   Needs = ets:new(needs, []),
