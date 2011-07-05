@@ -97,6 +97,7 @@ handle_message(<<3>>) ->
 % 4. Have
 handle_message(<<4,Payload:4/binary>>) ->
   PieceNumber = multibyte:binary_to_multibyte_integer(Payload),
+  master ! {have, PieceNumber},
   io:format("The peer has piece ~p~n", [PieceNumber]);
 
 % 5. Bitfield

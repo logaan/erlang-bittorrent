@@ -37,12 +37,17 @@ loop(Controller, Needs) ->
       exit(normal);
     Unknown ->
       error_logger:error_msg(Unknown)
-  after 1000 ->
+  after 5000 ->
       case length(ets:match(Needs, {'_', requested})) of
         0 ->
-          {Availables, _Continuation} = ets:match(Needs, {'$1', available}, 5),
-          FormattedAvailables = [ A || [A] <- Availables ],
-          Controller ! {send_haves, FormattedAvailables};
+          case ets:match(Needs, {'$1', available}, 5) of
+            {Availables, _Continuation} ->
+              FormattedAvailables = [ A || [A] <- Availables ],
+              Controller ! {send_haves, FormattedAvailables},
+              loop(Controller, Needs);
+            '$end_of_table' ->
+              ok
+          end;
         _ ->
           loop(Controller, Needs)
       end
@@ -51,5 +56,6 @@ loop(Controller, Needs) ->
 populate(Needs, 0) ->
   Needs;
 populate(Needs, NumberOfPieces) ->
-  ets:insert(Needs, {NumberOfPieces, available}),
-  populate(Needs, NumberOfPieces - 1).
+  PieceIndex = NumberOfPieces - 1,
+  ets:insert(Needs, {PieceIndex, available}),
+  populate(Needs, PieceIndex).

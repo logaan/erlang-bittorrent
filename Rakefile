@@ -30,6 +30,7 @@ end
 task :cycle => [:remove, :add]
 
 task :add => [:get_session] do
+  sleep(1)
   add = JSON.parse(
     RestClient.post(
       UPLOAD_URL,

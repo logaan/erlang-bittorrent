@@ -1,6 +1,7 @@
 -module(meta_info).
 -include_lib("eunit/include/eunit.hrl").
--export([read_file/1, info_hash/1, filename/1, piece_length/1, bitfield/1]).
+-export([read_file/1, info_hash/1, filename/1, piece_length/1,
+         number_of_pieces/1, bitfield/1]).
 
 %
 % Constructor
@@ -26,10 +27,13 @@ filename({meta_info, MetaInfo}) ->
 piece_length({meta_info, MetaInfo}) ->
   lookup_info_field(<<"piece length">>, MetaInfo).
 
-bitfield({meta_info, MetaInfo}) ->
+number_of_pieces({meta_info, MetaInfo}) ->
   PieceHashes = lookup_info_field(<<"pieces">>, MetaInfo),
   HashLength = 20,
-  NumberOfPieces = round(length(binary_to_list(PieceHashes)) / HashLength),
+  round(length(binary_to_list(PieceHashes)) / HashLength).
+
+bitfield({meta_info, MetaInfo}) ->
+  NumberOfPieces = number_of_pieces({meta_info, MetaInfo}),
   create_bitfield_binary(NumberOfPieces).
 
 %

@@ -11,6 +11,8 @@ main(_) ->
 
   receive {socket, Socket} -> ok end,
 
+  NeedServer = need_server:start(10),
+
   % receive
   %   unchoked -> ok
   %   after 5000 -> ok
@@ -18,21 +20,33 @@ main(_) ->
 
   bittorrent:send_bitfield(Socket, meta_info:bitfield(MetaInfo)),
 
-  % Need to send some haves to start getting requests
-  bittorrent:send_have(Socket, 0),
-  bittorrent:send_have(Socket, 1),
-
   % Needs to be unchocked before it'll start requesting pieces
   bittorrent:send_unchoke(Socket),
 
-  loop(MetaInfo, Socket).
+  loop(MetaInfo, Socket, NeedServer).
 
-loop(MetaInfo, Socket) ->
+loop(MetaInfo, Socket, NeedServer) ->
   receive
     {received_requst, PieceIndex, BlockOffset, BlockLength} ->
+      % Terrible name
+      PieceNumber = multibyte:binary_to_multibyte_integer(PieceIndex),
+      need_server:set_requested(NeedServer, PieceNumber),
       send_any_piece(Socket, PieceIndex, BlockOffset, BlockLength, MetaInfo),
-      loop(MetaInfo, Socket);
+      need_server:set_sent(NeedServer, PieceNumber),
+      loop(MetaInfo, Socket, NeedServer);
+    {have, PieceIndex} ->
+      need_server:set_received(NeedServer, PieceIndex),
+      loop(MetaInfo, Socket, NeedServer);
+    {send_haves, Haves} ->
+      io:format("Should send haves: ~p~n", [Haves]),
+      SetAndSend = fun(PieceIndex) ->
+        need_server:set_offered(NeedServer, PieceIndex),
+        bittorrent:send_have(Socket, PieceIndex)
+      end,
+      lists:map(SetAndSend, Haves),
+      loop(MetaInfo, Socket, NeedServer);
     closed ->
+      need_server:stop(NeedServer),
       ok;
     received_bitfield ->
       io:format("Transmission already has the complete torrent.");
