@@ -11,12 +11,7 @@ main(_) ->
 
   receive {socket, Socket} -> ok end,
 
-  NeedServer = need_server:start(10),
-
-  % receive
-  %   unchoked -> ok
-  %   after 5000 -> ok
-  % end,
+  NeedServer = need_server:start(meta_info:number_of_pieces(MetaInfo)),
 
   bittorrent:send_bitfield(Socket, meta_info:bitfield(MetaInfo)),
 
